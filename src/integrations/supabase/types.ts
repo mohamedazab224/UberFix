@@ -1698,6 +1698,21 @@ export type Database = {
           },
         ]
       }
+      service_icons: {
+        Row: {
+          name: string
+          svg_content: string | null
+        }
+        Insert: {
+          name: string
+          svg_content?: string | null
+        }
+        Update: {
+          name?: string
+          svg_content?: string | null
+        }
+        Relationships: []
+      }
       service_price_tiers: {
         Row: {
           created_at: string | null
