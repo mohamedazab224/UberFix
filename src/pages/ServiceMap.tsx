@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { createRoot } from 'react-dom/client';
 import { loadGoogleMaps } from '@/lib/googleMapsLoader';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,7 @@ export default function ServiceMap() {
   const [selectedSpecialization, setSelectedSpecialization] = useState<string | undefined>();
   const [selectedBranch, setSelectedBranch] = useState<Branch2 | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number; address?: string } | null>(null);
+  const [markerClusterer, setMarkerClusterer] = useState<MarkerClusterer | null>(null);
   const [markers, setMarkers] = useState<google.maps.Marker[]>([]);
   
   const { branches, loading: branchesLoading, refetch: refetchBranches } = useBranches2();
@@ -140,11 +142,15 @@ export default function ServiceMap() {
   const updateMarkers = () => {
     if (!map) return;
 
-    // Clear existing markers
+    // Clear existing markers and clusterer
+    if (markerClusterer) {
+      markerClusterer.clearMarkers();
+    }
     markers.forEach(marker => marker.setMap(null));
     setMarkers([]);
 
     const newMarkers: google.maps.Marker[] = [];
+    const customerMarkers: google.maps.Marker[] = [];
     const bounds = new google.maps.LatLngBounds();
 
     // Add customer location markers (from branch_locations)
@@ -153,13 +159,12 @@ export default function ServiceMap() {
     
     const addCustomerMarker = (position: { lat: number; lng: number }, name: string) => {
       const marker = new google.maps.Marker({
-        map,
         position,
         title: name,
         icon: {
           url: customerIcon,
-          scaledSize: new google.maps.Size(60, 72),
-          anchor: new google.maps.Point(30, 72),
+          scaledSize: new google.maps.Size(50, 60),
+          anchor: new google.maps.Point(25, 60),
         },
         optimized: false,
       });
@@ -178,6 +183,7 @@ export default function ServiceMap() {
         map.setZoom(14);
       });
 
+      customerMarkers.push(marker);
       newMarkers.push(marker);
       bounds.extend(position);
     };
@@ -327,6 +333,34 @@ export default function ServiceMap() {
     });
 
     setMarkers(newMarkers);
+    
+    // Create clusterer for customer markers
+    if (customerMarkers.length > 0) {
+      const clusterer = new MarkerClusterer({
+        map,
+        markers: customerMarkers,
+        renderer: {
+          render: ({ count, position }) => {
+            return new google.maps.Marker({
+              position,
+              icon: {
+                url: customerIcon,
+                scaledSize: new google.maps.Size(70, 84),
+                anchor: new google.maps.Point(35, 84),
+              },
+              label: {
+                text: String(count),
+                color: 'white',
+                fontSize: '14px',
+                fontWeight: 'bold',
+              },
+              zIndex: Number(google.maps.Marker.MAX_ZINDEX) + count,
+            });
+          },
+        },
+      });
+      setMarkerClusterer(clusterer);
+    }
     
     if (newMarkers.length > 0) {
       map.fitBounds(bounds);
