@@ -172,7 +172,7 @@ export default function ServiceMap() {
     ];
 
     // Add customer location markers
-    const customerIcon = '/icons/pin-pro/customers.svg';
+    const customerIcon = '/icons/pin-pro/customers.png';
     customerLocations.forEach((location) => {
       const position = { lat: location.lat, lng: location.lng };
       
