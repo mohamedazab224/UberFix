@@ -199,13 +199,13 @@ export default function Map() {
             <p className="text-muted-foreground">جاري تحميل الخريطة...</p>
           </div>
         ) : (
-          <div className="rounded-2xl overflow-hidden shadow-2xl relative border-2 border-primary/20">
+          <div className="rounded-2xl overflow-hidden shadow-2xl relative border-2 border-primary/20" style={{ minHeight: '600px' }}>
             <GoogleMap 
-              height="calc(100vh - 450px)"
+              height="600px"
               latitude={mapCenter.lat}
               longitude={mapCenter.lng}
               zoom={allMarkers.length > 1 ? 12 : 14}
-              interactive={true}
+              interactive={false}
               markers={allMarkers as any}
               onMarkerClick={handleMarkerClick}
             />
