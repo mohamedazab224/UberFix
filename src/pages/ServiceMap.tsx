@@ -146,54 +146,29 @@ export default function ServiceMap() {
 
     const newMarkers: google.maps.Marker[] = [];
     const bounds = new google.maps.LatLngBounds();
-    
-    // قائمة الإحداثيات الثابتة لمواقع العملاء في القاهرة ومصر
-    const customerLocations = [
-      { name: "القاهرة الجديدة", lat: 30.0330, lng: 31.4410 },
-      { name: "مدينة نصر", lat: 30.0539, lng: 31.3554 },
-      { name: "المعادي", lat: 29.9601, lng: 31.2568 },
-      { name: "الشيخ زايد", lat: 30.0181, lng: 30.9717 },
-      { name: "6 أكتوبر", lat: 29.9513, lng: 30.9217 },
-      { name: "مدينتي", lat: 30.0947, lng: 31.5497 },
-      { name: "التجمع الخامس", lat: 30.0131, lng: 31.4296 },
-      { name: "الرحاب", lat: 30.0577, lng: 31.4984 },
-      { name: "الشروق", lat: 30.1241, lng: 31.6091 },
-      { name: "هليوبوليس", lat: 30.0871, lng: 31.3235 },
-      { name: "المقطم", lat: 30.0106, lng: 31.3114 },
-      { name: "حلوان", lat: 29.8420, lng: 31.3340 },
-      { name: "وسط البلد", lat: 30.0444, lng: 31.2357 },
-      { name: "الزمالك", lat: 30.0608, lng: 31.2188 },
-      { name: "الدقي", lat: 30.0382, lng: 31.2006 },
-      { name: "المهندسين", lat: 30.0616, lng: 31.2008 },
-      { name: "الجيزة", lat: 30.0131, lng: 31.2089 },
-      { name: "الإسكندرية", lat: 31.2001, lng: 29.9187 },
-      { name: "طنطا", lat: 30.7865, lng: 31.0004 },
-      { name: "المنصورة", lat: 31.0409, lng: 31.3785 },
-    ];
 
-    // Add customer location markers
+    // Add customer location markers (from branch_locations)
     const customerIcon = '/icons/pin-pro/customers.png';
-    customerLocations.forEach((location) => {
-      const position = { lat: location.lat, lng: location.lng };
-      
+    const geocoder = new google.maps.Geocoder();
+    
+    const addCustomerMarker = (position: { lat: number; lng: number }, name: string) => {
       const marker = new google.maps.Marker({
         map,
         position,
-        title: location.name,
+        title: name,
         icon: {
           url: customerIcon,
           scaledSize: new google.maps.Size(60, 72),
           anchor: new google.maps.Point(30, 72),
         },
         optimized: false,
-        animation: google.maps.Animation.DROP,
       });
 
       marker.addListener('click', () => {
         const infoWindow = new google.maps.InfoWindow({
           content: `
             <div style="padding: 12px; font-family: Arial; min-width: 150px;">
-              <h3 style="font-weight: bold; margin: 0 0 8px 0; color: #111; font-size: 16px;">${location.name}</h3>
+              <h3 style="font-weight: bold; margin: 0 0 8px 0; color: #111; font-size: 16px;">${name}</h3>
               <p style="margin: 0; color: #666; font-size: 14px;">📍 موقع عميل</p>
             </div>
           `
@@ -205,6 +180,36 @@ export default function ServiceMap() {
 
       newMarkers.push(marker);
       bounds.extend(position);
+    };
+    
+    // Process all branch locations with geocoding
+    BRANCH_LOCATIONS.forEach((location, index) => {
+      if (!location.mapUrl || location.name === 'nan') return;
+      
+      // Try to extract coordinates from URL first
+      const coords = parseMapUrl(location.mapUrl);
+      if (coords) {
+        addCustomerMarker(coords, location.name);
+      } else {
+        // Extract place name from URL and geocode it
+        const placeMatch = location.mapUrl.match(/q=([^&]+)/);
+        if (placeMatch) {
+          const placeName = decodeURIComponent(placeMatch[1].replace(/\+/g, ' '));
+          
+          // Add delay to avoid hitting API rate limits
+          setTimeout(() => {
+            geocoder.geocode({ address: placeName + ', مصر' }, (results, status) => {
+              if (status === 'OK' && results && results[0]) {
+                const position = {
+                  lat: results[0].geometry.location.lat(),
+                  lng: results[0].geometry.location.lng()
+                };
+                addCustomerMarker(position, location.name);
+              }
+            });
+          }, index * 100); // 100ms delay between requests
+        }
+      }
     });
 
     // Add branch markers (from branches2)
