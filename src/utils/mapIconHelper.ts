@@ -1,28 +1,39 @@
-// Map category to icon file and color
-export const getCategoryIcon = (category?: string): { icon: string; color: string } => {
-  if (!category) {
-    return { icon: '/icons/pin-pro/pin-pro-32.svg', color: '#f5bf23' }; // default yellow
+// Map category to icon file and color for branches
+export const getBranchIcon = (): { icon: string; color: string } => {
+  // All branches use shop icon - Blue
+  return { icon: '/icons/pin-pro/pin-pro-49.svg', color: '#1800ad' };
+};
+
+// Map category to icon file and color for technicians
+export const getTechnicianIcon = (specialization?: string): { icon: string; color: string } => {
+  if (!specialization) {
+    return { icon: '/icons/pin-pro/pin-pro-5.svg', color: '#faab11' }; // default technician - orange
   }
 
-  const categoryLower = category.toLowerCase();
+  const specLower = specialization.toLowerCase();
 
   // Technician/Worker icons - Orange
-  if (categoryLower.includes('فني') || categoryLower.includes('عامل') || categoryLower.includes('صيانة')) {
+  if (specLower.includes('فني') || specLower.includes('عامل') || specLower.includes('صيانة')) {
     return { icon: '/icons/pin-pro/pin-pro-5.svg', color: '#faab11' };
   }
 
-  // Shop/Store icons - Blue
-  if (categoryLower.includes('محل') || categoryLower.includes('متجر') || categoryLower.includes('دكان')) {
-    return { icon: '/icons/pin-pro/pin-pro-49.svg', color: '#1800ad' };
-  }
-
   // Repair/Fix icons - Orange
-  if (categoryLower.includes('إصلاح') || categoryLower.includes('تصليح')) {
+  if (specLower.includes('إصلاح') || specLower.includes('تصليح')) {
     return { icon: '/icons/pin-pro/pin-pro-14.svg', color: '#faab11' };
   }
 
-  // Default - Yellow
-  return { icon: '/icons/pin-pro/pin-pro-32.svg', color: '#f5bf23' };
+  // Electrician - Orange
+  if (specLower.includes('كهرب')) {
+    return { icon: '/icons/pin-pro/pin-pro-4.svg', color: '#faab11' };
+  }
+
+  // Plumber - Orange
+  if (specLower.includes('سباك')) {
+    return { icon: '/icons/pin-pro/pin-pro-43.svg', color: '#faab11' };
+  }
+
+  // Default - Orange
+  return { icon: '/icons/pin-pro/pin-pro-5.svg', color: '#faab11' };
 };
 
 // Parse location string to lat/lng
