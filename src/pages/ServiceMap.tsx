@@ -146,16 +146,35 @@ export default function ServiceMap() {
 
     const newMarkers: google.maps.Marker[] = [];
     const bounds = new google.maps.LatLngBounds();
+    
+    // قائمة الإحداثيات الثابتة لمواقع العملاء في القاهرة ومصر
+    const customerLocations = [
+      { name: "القاهرة الجديدة", lat: 30.0330, lng: 31.4410 },
+      { name: "مدينة نصر", lat: 30.0539, lng: 31.3554 },
+      { name: "المعادي", lat: 29.9601, lng: 31.2568 },
+      { name: "الشيخ زايد", lat: 30.0181, lng: 30.9717 },
+      { name: "6 أكتوبر", lat: 29.9513, lng: 30.9217 },
+      { name: "مدينتي", lat: 30.0947, lng: 31.5497 },
+      { name: "التجمع الخامس", lat: 30.0131, lng: 31.4296 },
+      { name: "الرحاب", lat: 30.0577, lng: 31.4984 },
+      { name: "الشروق", lat: 30.1241, lng: 31.6091 },
+      { name: "هليوبوليس", lat: 30.0871, lng: 31.3235 },
+      { name: "المقطم", lat: 30.0106, lng: 31.3114 },
+      { name: "حلوان", lat: 29.8420, lng: 31.3340 },
+      { name: "وسط البلد", lat: 30.0444, lng: 31.2357 },
+      { name: "الزمالك", lat: 30.0608, lng: 31.2188 },
+      { name: "الدقي", lat: 30.0382, lng: 31.2006 },
+      { name: "المهندسين", lat: 30.0616, lng: 31.2008 },
+      { name: "الجيزة", lat: 30.0131, lng: 31.2089 },
+      { name: "الإسكندرية", lat: 31.2001, lng: 29.9187 },
+      { name: "طنطا", lat: 30.7865, lng: 31.0004 },
+      { name: "المنصورة", lat: 31.0409, lng: 31.3785 },
+    ];
 
-    // Add customer location markers (from branch_locations)
-    const customerIcon = '/pin-pro/customers.svg';
-    BRANCH_LOCATIONS.forEach((location) => {
-      if (!location.mapUrl || location.name === 'nan') return;
-      
-      const coords = parseMapUrl(location.mapUrl);
-      if (!coords) return;
-
-      const position = { lat: coords.lat, lng: coords.lng };
+    // Add customer location markers
+    const customerIcon = '/icons/pin-pro/customers.svg';
+    customerLocations.forEach((location) => {
+      const position = { lat: location.lat, lng: location.lng };
       
       const marker = new google.maps.Marker({
         map,
@@ -173,15 +192,15 @@ export default function ServiceMap() {
       marker.addListener('click', () => {
         const infoWindow = new google.maps.InfoWindow({
           content: `
-            <div style="padding: 8px;">
-              <h3 style="font-weight: bold; margin-bottom: 4px;">${location.name}</h3>
-              <a href="${location.mapUrl}" target="_blank" style="color: #f5bf23; text-decoration: underline;">عرض على الخريطة</a>
+            <div style="padding: 12px; font-family: Arial; min-width: 150px;">
+              <h3 style="font-weight: bold; margin: 0 0 8px 0; color: #111; font-size: 16px;">${location.name}</h3>
+              <p style="margin: 0; color: #666; font-size: 14px;">📍 موقع عميل</p>
             </div>
           `
         });
         infoWindow.open(map, marker);
         map.panTo(position);
-        map.setZoom(15);
+        map.setZoom(14);
       });
 
       newMarkers.push(marker);
@@ -309,22 +328,35 @@ export default function ServiceMap() {
     }
   };
 
-  // Helper to parse map_url from branches2
+  // Helper to parse map_url from branches2 or branch_locations
   const parseMapUrl = (mapUrl: string): { lat: number; lng: number } | null => {
     try {
-      // Try to extract coordinates from Google Maps URL
-      const match = mapUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-      if (match) {
-        return { lat: parseFloat(match[1]), lng: parseFloat(match[2]) };
+      // Try to extract coordinates from Google Maps URL patterns
+      // Pattern 1: ?q=lat,lng
+      const qMatch = mapUrl.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+      if (qMatch) {
+        return { lat: parseFloat(qMatch[1]), lng: parseFloat(qMatch[2]) };
       }
       
-      // Try to parse as JSON
-      const parsed = JSON.parse(mapUrl);
-      if (parsed.lat && parsed.lng) {
-        return { lat: parseFloat(parsed.lat), lng: parseFloat(parsed.lng) };
+      // Pattern 2: @lat,lng
+      const atMatch = mapUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if (atMatch) {
+        return { lat: parseFloat(atMatch[1]), lng: parseFloat(atMatch[2]) };
+      }
+      
+      // Pattern 3: /maps?...q=location_name - use Geocoding API
+      // For now, we'll skip these as they need geocoding
+      // Return null so the marker won't be created
+      
+      // Try to parse as JSON (fallback for direct coordinate objects)
+      if (mapUrl.startsWith('{')) {
+        const parsed = JSON.parse(mapUrl);
+        if (parsed.lat && parsed.lng) {
+          return { lat: parseFloat(parsed.lat), lng: parseFloat(parsed.lng) };
+        }
       }
     } catch (e) {
-      console.error('Error parsing map_url:', e);
+      // Silent fail - just skip this location
     }
     return null;
   };

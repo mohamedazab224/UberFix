@@ -1,0 +1,16 @@
+<svg width="60" height="72" viewBox="0 0 60 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Pin Background -->
+  <path d="M30 0C13.43 0 0 13.43 0 30C0 46.57 30 72 30 72C30 72 60 46.57 60 30C60 13.43 46.57 0 30 0Z" fill="#4169E1"/>
+  <path d="M30 0C13.43 0 0 13.43 0 30C0 46.57 30 72 30 72C30 72 60 46.57 60 30C60 13.43 46.57 0 30 0Z" fill="url(#paint0_linear)" opacity="0.3"/>
+  
+  <!-- Customer Icon (User) -->
+  <circle cx="30" cy="24" r="6" fill="white"/>
+  <path d="M30 32C23 32 18 35 18 39C18 40.1046 18.8954 41 20 41H40C41.1046 41 42 40.1046 42 39C42 35 37 32 30 32Z" fill="white"/>
+  
+  <defs>
+    <linearGradient id="paint0_linear" x1="30" y1="0" x2="30" y2="72" gradientUnits="userSpaceOnUse">
+      <stop stop-color="white" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+</svg>
