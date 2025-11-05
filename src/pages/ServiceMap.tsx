@@ -30,7 +30,7 @@ export default function ServiceMap() {
   const [selectedBranch, setSelectedBranch] = useState<Branch2 | null>(null);
   const [selectedTechnician, setSelectedTechnician] = useState<Technician | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number; address?: string } | null>(null);
-  const [markers, setMarkers] = useState<google.maps.marker.AdvancedMarkerElement[]>([]);
+  const [markers, setMarkers] = useState<google.maps.Marker[]>([]);
   
   const { branches, loading: branchesLoading, refetch: refetchBranches } = useBranches2();
   const { technicians, specializationIcons, loading: techniciansLoading, refetch: refetchTechnicians } = useTechnicians();
@@ -109,7 +109,6 @@ export default function ServiceMap() {
       const mapInstance = new google.maps.Map(mapRef.current!, {
         center: { lat: 30.0444, lng: 31.2357 }, // القاهرة
         zoom: 12,
-        mapId: 'DEMO_MAP_ID',
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: true,
@@ -143,10 +142,10 @@ export default function ServiceMap() {
     if (!map) return;
 
     // Clear existing markers
-    markers.forEach(marker => marker.map = null);
+    markers.forEach(marker => marker.setMap(null));
     setMarkers([]);
 
-    const newMarkers: google.maps.marker.AdvancedMarkerElement[] = [];
+    const newMarkers: google.maps.Marker[] = [];
     const bounds = new google.maps.LatLngBounds();
 
     // Add branch markers (from branches2)
@@ -158,45 +157,21 @@ export default function ServiceMap() {
       if (!coords) return;
 
       const position = { lat: coords.lat, lng: coords.lng };
-      const { icon, color } = getBranchIcon();
+      const { color } = getBranchIcon();
       
-      // Create custom marker for branch
-      const markerContent = document.createElement('div');
-      markerContent.className = 'custom-marker';
-      markerContent.innerHTML = `
-        <div style="
-          background: linear-gradient(135deg, ${color} 0%, ${color}dd 100%);
-          border: 3px solid white;
-          border-radius: 50%;
-          width: 48px;
-          height: 48px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-          cursor: pointer;
-          transition: transform 0.2s;
-        ">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-            <polyline points="9 22 9 12 15 12 15 22"/>
-          </svg>
-        </div>
-      `;
-
-      markerContent.addEventListener('mouseenter', () => {
-        markerContent.style.transform = 'scale(1.1)';
-      });
-
-      markerContent.addEventListener('mouseleave', () => {
-        markerContent.style.transform = 'scale(1)';
-      });
-
-      const marker = new google.maps.marker.AdvancedMarkerElement({
+      const marker = new google.maps.Marker({
         map,
         position,
-        content: markerContent,
-        title: branch.name
+        title: branch.name,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 12,
+          fillColor: color,
+          fillOpacity: 1,
+          strokeColor: '#ffffff',
+          strokeWeight: 3,
+        },
+        animation: google.maps.Animation.DROP,
       });
 
       marker.addListener('click', () => {
@@ -222,46 +197,21 @@ export default function ServiceMap() {
       
       // Get icon from specialization_icons or fallback
       const specIcon = specializationIcons.find(s => s.name === tech.specialization || s.name_ar === tech.specialization);
-      const { icon, color } = specIcon 
-        ? { icon: specIcon.icon_path, color: specIcon.color }
-        : getTechnicianIcon(tech.specialization);
+      const color = specIcon?.color || getTechnicianIcon(tech.specialization).color;
       
-      // Create custom marker for technician
-      const markerContent = document.createElement('div');
-      markerContent.className = 'custom-marker';
-      markerContent.innerHTML = `
-        <div style="
-          background: linear-gradient(135deg, ${color} 0%, ${color}dd 100%);
-          border: 3px solid white;
-          border-radius: 50%;
-          width: 48px;
-          height: 48px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-          cursor: pointer;
-          transition: transform 0.2s;
-        ">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-          </svg>
-        </div>
-      `;
-
-      markerContent.addEventListener('mouseenter', () => {
-        markerContent.style.transform = 'scale(1.1)';
-      });
-
-      markerContent.addEventListener('mouseleave', () => {
-        markerContent.style.transform = 'scale(1)';
-      });
-
-      const marker = new google.maps.marker.AdvancedMarkerElement({
+      const marker = new google.maps.Marker({
         map,
         position,
-        content: markerContent,
-        title: tech.name
+        title: tech.name,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 10,
+          fillColor: color,
+          fillOpacity: 1,
+          strokeColor: '#ffffff',
+          strokeWeight: 2,
+        },
+        animation: google.maps.Animation.DROP,
       });
 
       marker.addListener('click', () => {
