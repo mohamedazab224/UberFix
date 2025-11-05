@@ -23,7 +23,6 @@ import { Loader2 } from "lucide-react";
 
 const propertySchema = z.object({
   name: z.string().min(3, "اسم العقار يجب أن يكون 3 أحرف على الأقل"),
-  code: z.string().optional(),
   type: z.string()
     .refine(
       (val) => [
@@ -37,18 +36,15 @@ const propertySchema = z.object({
       { message: "يرجى اختيار نوع العقار" }
     )
     .default("residential"),
-  country_code: z.string().default("EG"),
-  city_id: z.string().optional(),
-  district_id: z.string().optional(),
-  address: z.string().optional(),
+  address: z.string().min(1, "العنوان مطلوب"),
   area: z.number().optional(),
   rooms: z.number().optional(),
+  bathrooms: z.number().optional(),
+  floors: z.number().optional(),
+  parking_spaces: z.number().optional(),
   description: z.string().optional(),
-  maintenance_manager: z.string().optional(),
-  property_supervisor: z.string().optional(),
-  temp_contact_name: z.string().optional(),
-  temp_contact_country_code: z.string().optional(),
-  temp_contact_phone: z.string().optional(),
+  amenities: z.array(z.string()).optional(),
+  region_id: z.string().optional(),
 });
 
 type PropertyFormData = z.infer<typeof propertySchema>;
@@ -83,10 +79,10 @@ export function PropertyForm({ skipNavigation = false, onSuccess }: PropertyForm
     resolver: zodResolver(propertySchema),
     defaultValues: {
       type: "residential",
-      country_code: "EG",
-      temp_contact_country_code: "+20"
+      address: "",
+      name: ""
     },
-    mode: "onChange" // Enable validation on change
+    mode: "onChange"
   });
 
   const propertyType = watch("type");
@@ -163,7 +159,12 @@ export function PropertyForm({ skipNavigation = false, onSuccess }: PropertyForm
           address: data.address?.trim() || location?.address || '',
           area: data.area || null,
           rooms: data.rooms || null,
+          bathrooms: data.bathrooms || null,
+          floors: data.floors || null,
+          parking_spaces: data.parking_spaces || null,
           description: data.description?.trim() || null,
+          amenities: data.amenities || [],
+          region_id: data.region_id || null,
           latitude: location?.latitude || null,
           longitude: location?.longitude || null,
           status: "active",
@@ -248,14 +249,6 @@ export function PropertyForm({ skipNavigation = false, onSuccess }: PropertyForm
           )}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="code">رقم/رمز العقار</Label>
-          <Input
-            id="code"
-            {...register("code")}
-            placeholder="مثال: B-101"
-          />
-        </div>
       </div>
 
       {/* صورة العقار */}
@@ -272,64 +265,26 @@ export function PropertyForm({ skipNavigation = false, onSuccess }: PropertyForm
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">تفاصيل الموقع</h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <Label>الدولة</Label>
-            <Select
-              defaultValue="EG"
-              onValueChange={(value) => setValue("country_code", value)}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="EG">جمهورية مصر العربية</SelectItem>
-                <SelectItem value="SA">المملكة العربية السعودية</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label>المدينة</Label>
-            <Select
-              value={selectedCity}
-              onValueChange={(value) => {
-                setSelectedCity(value);
-                setValue("city_id", value);
-                setValue("district_id", "");
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="اختر المدينة التي يقع بها العقار" />
-              </SelectTrigger>
-              <SelectContent>
-                {cities.map((city) => (
-                  <SelectItem key={city.id} value={city.id}>
-                    {city.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label>الحي</Label>
-            <Select
-              disabled={!selectedCity}
-              onValueChange={(value) => setValue("district_id", value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="اختر الحي الذي يقع به العقار" />
-              </SelectTrigger>
-              <SelectContent>
-                {districts.map((district) => (
-                  <SelectItem key={district.id} value={district.id}>
-                    {district.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="space-y-2">
+          <Label>المنطقة</Label>
+          <Select
+            value={selectedCity}
+            onValueChange={(value) => {
+              setSelectedCity(value);
+              setValue("region_id", value);
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="اختر المنطقة" />
+            </SelectTrigger>
+            <SelectContent>
+              {cities.map((city) => (
+                <SelectItem key={city.id} value={city.id}>
+                  {city.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -346,15 +301,19 @@ export function PropertyForm({ skipNavigation = false, onSuccess }: PropertyForm
 
       {/* العنوان التفصيلي */}
       <div className="space-y-2">
-        <Label htmlFor="address">العنوان التفصيلي (اختياري)</Label>
+        <Label htmlFor="address">العنوان التفصيلي *</Label>
         <Textarea
           id="address"
           {...register("address")}
           placeholder="نادي وادي دجلة أكتوبر"
           rows={3}
+          className={errors.address ? "border-destructive" : ""}
         />
+        {errors.address && (
+          <p className="text-sm text-destructive">{errors.address.message}</p>
+        )}
         <p className="text-xs text-muted-foreground">
-          تفاصيل إضافية للعنوان: مثل رقم الطابق، الطريق بعد الرقم الأساسي، رقم الشقة، إلخ
+          تفاصيل إضافية للعنوان: مثل رقم الطابق، الطريق، رقم الشقة، إلخ
         </p>
       </div>
 
@@ -362,9 +321,9 @@ export function PropertyForm({ skipNavigation = false, onSuccess }: PropertyForm
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">المواصفات الأساسية</h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="area">المساحة (متر مربع)</Label>
+            <Label htmlFor="area">المساحة (م²)</Label>
             <Input
               id="area"
               type="number"
@@ -373,12 +332,12 @@ export function PropertyForm({ skipNavigation = false, onSuccess }: PropertyForm
               {...register("area", { 
                 setValueAs: v => v === '' ? undefined : parseFloat(v)
               })}
-              placeholder="مثال: 50"
+              placeholder="50"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="rooms">عدد الغرف</Label>
+            <Label htmlFor="rooms">الغرف</Label>
             <Input
               id="rooms"
               type="number"
@@ -386,7 +345,46 @@ export function PropertyForm({ skipNavigation = false, onSuccess }: PropertyForm
               {...register("rooms", { 
                 setValueAs: v => v === '' ? undefined : parseInt(v)
               })}
-              placeholder="مثال: 2"
+              placeholder="2"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="bathrooms">الحمامات</Label>
+            <Input
+              id="bathrooms"
+              type="number"
+              min="0"
+              {...register("bathrooms", { 
+                setValueAs: v => v === '' ? undefined : parseInt(v)
+              })}
+              placeholder="1"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="floors">الطوابق</Label>
+            <Input
+              id="floors"
+              type="number"
+              min="0"
+              {...register("floors", { 
+                setValueAs: v => v === '' ? undefined : parseInt(v)
+              })}
+              placeholder="1"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="parking_spaces">المواقف</Label>
+            <Input
+              id="parking_spaces"
+              type="number"
+              min="0"
+              {...register("parking_spaces", { 
+                setValueAs: v => v === '' ? undefined : parseInt(v)
+              })}
+              placeholder="1"
             />
           </div>
         </div>
@@ -403,74 +401,6 @@ export function PropertyForm({ skipNavigation = false, onSuccess }: PropertyForm
         />
       </div>
 
-      {/* إعدادات الإدارة */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">إعدادات الإدارة</h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="maintenance_manager">مدير الصيانة</Label>
-            <Input
-              id="maintenance_manager"
-              {...register("maintenance_manager")}
-              placeholder="اسم مدير الصيانة (اختياري)"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="property_supervisor">مشرف العقار</Label>
-            <Input
-              id="property_supervisor"
-              {...register("property_supervisor")}
-              placeholder="اسم مشرف العقار (اختياري)"
-            />
-          </div>
-        </div>
-
-        <div className="p-4 bg-muted/50 rounded-lg space-y-4">
-          <p className="text-sm text-muted-foreground">
-            هذه الحقول اختيارية وتُستخدم فقط إذا كنت ترغب بعرض بيانات تواصل مؤقتة للطلبات.
-          </p>
-
-          <div className="space-y-2">
-            <Label htmlFor="temp_contact_name">اسم الشخص للتواصل المؤقت</Label>
-            <Input
-              id="temp_contact_name"
-              {...register("temp_contact_name")}
-              placeholder="ادخل الاسم..."
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="temp_contact_country_code">رمز الدولة</Label>
-              <Select
-                defaultValue="+20"
-                onValueChange={(value) => setValue("temp_contact_country_code", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="+20">+20 (مصر)</SelectItem>
-                  <SelectItem value="+966">+966 (السعودية)</SelectItem>
-                  <SelectItem value="+971">+971 (الإمارات)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="temp_contact_phone">رقم الجوال للتواصل المؤقت</Label>
-              <Input
-                id="temp_contact_phone"
-                {...register("temp_contact_phone")}
-                placeholder="مثال: 1234567890"
-                type="tel"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* أزرار الحفظ */}
       <div className="flex gap-3 justify-end pt-6 border-t">

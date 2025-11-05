@@ -35,9 +35,9 @@ export function RequestStatusBadge({ status, className }: RequestStatusBadgeProp
       variant={config.variant}
       className={cn(
         "text-xs font-medium",
-        status === 'completed' && "bg-green-500 hover:bg-green-600 text-white",
-        status === 'in_progress' && "bg-blue-500 hover:bg-blue-600 text-white",
-        status === 'pending' && "bg-yellow-500 hover:bg-yellow-600 text-white",
+        status === 'completed' && "bg-green-600 hover:bg-green-700 text-primary-foreground",
+        status === 'in_progress' && "bg-blue-600 hover:bg-blue-700 text-primary-foreground",
+        status === 'pending' && "bg-yellow-600 hover:bg-yellow-700 text-primary-foreground",
         className
       )}
     >

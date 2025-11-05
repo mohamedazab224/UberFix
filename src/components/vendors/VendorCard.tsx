@@ -25,9 +25,9 @@ interface VendorCardProps {
 
 export function VendorCard({ vendor, onContact, onAssign }: VendorCardProps) {
   const statusConfig = {
-    available: { label: "متاح", className: "bg-green-500 text-white" },
-    busy: { label: "مشغول", className: "bg-yellow-500 text-white" },
-    offline: { label: "غير متاح", className: "bg-gray-500 text-white" }
+    available: { label: "متاح", className: "bg-green-600 text-primary-foreground" },
+    busy: { label: "مشغول", className: "bg-yellow-600 text-primary-foreground" },
+    offline: { label: "غير متاح", className: "bg-muted text-muted-foreground" }
   };
 
   // Ensure we have a valid status with proper type checking
