@@ -1,25 +1,24 @@
 // Map category to icon file and color for branches
 export const getBranchIcon = (): { icon: string; color: string } => {
-  // All branches use shop icon - Blue
   return { icon: '/icons/pin-pro/pin-pro-49.svg', color: '#1800ad' };
 };
 
 // Map category to icon file and color for technicians
 export const getTechnicianIcon = (specialization?: string): { icon: string; color: string } => {
   if (!specialization) {
-    return { icon: '/icons/pin-pro/pin-pro-5.svg', color: '#faab11' }; // default technician - orange
+    return { icon: '/icons/pin-pro/pin-pro-5.svg', color: '#faab11' };
   }
 
   const specLower = specialization.toLowerCase();
 
-  // Technician/Worker icons - Orange
-  if (specLower.includes('فني') || specLower.includes('عامل') || specLower.includes('صيانة')) {
+  // Worker/Construction icons - Orange
+  if (specLower.includes('فني') || specLower.includes('عامل')) {
     return { icon: '/icons/pin-pro/pin-pro-5.svg', color: '#faab11' };
   }
 
-  // Repair/Fix icons - Orange
-  if (specLower.includes('إصلاح') || specLower.includes('تصليح')) {
-    return { icon: '/icons/pin-pro/pin-pro-14.svg', color: '#faab11' };
+  // Repair/Fix icons - Orange/Yellow
+  if (specLower.includes('إصلاح') || specLower.includes('تصليح') || specLower.includes('صيانة')) {
+    return { icon: '/icons/pin-pro/pin-pro-10.svg', color: '#faab11' };
   }
 
   // Electrician - Orange
@@ -30,6 +29,16 @@ export const getTechnicianIcon = (specialization?: string): { icon: string; colo
   // Plumber - Orange
   if (specLower.includes('سباك')) {
     return { icon: '/icons/pin-pro/pin-pro-43.svg', color: '#faab11' };
+  }
+
+  // Carpenter - Orange
+  if (specLower.includes('نجار')) {
+    return { icon: '/icons/pin-pro/pin-pro-7.svg', color: '#faab11' };
+  }
+
+  // Painter - Orange
+  if (specLower.includes('دهان')) {
+    return { icon: '/icons/pin-pro/pin-pro-8.svg', color: '#faab11' };
   }
 
   // Default - Orange

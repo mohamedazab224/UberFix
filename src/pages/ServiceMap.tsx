@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createRoot } from 'react-dom/client';
 import { Loader } from '@googlemaps/js-api-loader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +17,8 @@ import {
 import { useBranches2, Branch2 } from '@/hooks/useBranches2';
 import { useTechnicians, Technician } from '@/hooks/useTechnicians';
 import { TechnicianMarkerInfo } from '@/components/maps/TechnicianMarkerInfo';
+import { TechnicianInfoWindow } from '@/components/maps/TechnicianInfoWindow';
+import { BranchInfoWindow } from '@/components/maps/BranchInfoWindow';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { getCachedApiKey, setCachedApiKey } from '@/lib/mapsCache';
@@ -156,24 +159,37 @@ export default function ServiceMap() {
       if (!coords) return;
 
       const position = { lat: coords.lat, lng: coords.lng };
-      const { color } = getBranchIcon();
+      const branchIcon = getBranchIcon();
       
       const marker = new google.maps.Marker({
         map,
         position,
         title: branch.name,
         icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 12,
-          fillColor: color,
-          fillOpacity: 1,
-          strokeColor: '#ffffff',
-          strokeWeight: 3,
+          url: branchIcon.icon,
+          scaledSize: new google.maps.Size(50, 60),
+          anchor: new google.maps.Point(25, 60),
         },
         animation: google.maps.Animation.DROP,
       });
 
       marker.addListener('click', () => {
+        const infoDiv = document.createElement('div');
+        const root = createRoot(infoDiv);
+        root.render(
+          <BranchInfoWindow
+            name={branch.name}
+            address={branch.location || ''}
+            phone={branch.phone || ''}
+            openingHours=""
+          />
+        );
+
+        const infoWindow = new google.maps.InfoWindow({
+          content: infoDiv
+        });
+        infoWindow.open(map, marker);
+        
         setSelectedBranch(branch);
         setSelectedTechnician(null);
         map.panTo(position);
@@ -196,24 +212,38 @@ export default function ServiceMap() {
       
       // Get icon from specialization_icons or fallback
       const specIcon = specializationIcons.find(s => s.name === tech.specialization || s.name_ar === tech.specialization);
-      const color = specIcon?.color || getTechnicianIcon(tech.specialization).color;
+      const techIcon = getTechnicianIcon(tech.specialization);
+      const iconUrl = specIcon?.icon_path || techIcon.icon;
       
       const marker = new google.maps.Marker({
         map,
         position,
         title: tech.name,
         icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 10,
-          fillColor: color,
-          fillOpacity: 1,
-          strokeColor: '#ffffff',
-          strokeWeight: 2,
+          url: iconUrl,
+          scaledSize: new google.maps.Size(50, 60),
+          anchor: new google.maps.Point(25, 60),
         },
         animation: google.maps.Animation.DROP,
       });
 
       marker.addListener('click', () => {
+        const infoDiv = document.createElement('div');
+        const root = createRoot(infoDiv);
+        root.render(
+          <TechnicianInfoWindow
+            name={tech.name}
+            specialization={tech.specialization || 'فني صيانة'}
+            rating={5}
+            phone={tech.phone || ''}
+          />
+        );
+
+        const infoWindow = new google.maps.InfoWindow({
+          content: infoDiv
+        });
+        infoWindow.open(map, marker);
+        
         setSelectedTechnician(tech);
         setSelectedBranch(null);
         map.panTo(position);
