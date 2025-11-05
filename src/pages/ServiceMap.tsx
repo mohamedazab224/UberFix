@@ -77,7 +77,7 @@ export default function ServiceMap() {
       const loader = new Loader({
         apiKey: apiKey,
         version: 'weekly',
-        libraries: ['places', 'marker'],
+        libraries: ['places'],
         language: 'ar',
         region: 'EG'
       });
