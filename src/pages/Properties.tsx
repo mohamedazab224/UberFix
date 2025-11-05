@@ -202,20 +202,30 @@ export default function Properties() {
               {filteredProperties.map((property) => (
                 <Card key={property.id} className="card-elegant hover:shadow-lg transition-shadow">
                   <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
+                     <div className="flex items-start justify-between">
                       <div className="flex-1 space-y-4">
                         {/* Header */}
                         <div className="flex items-start justify-between">
-                          <div>
-                            <div className="flex items-center gap-3">
-                              <h3 className="text-lg font-semibold text-foreground">
-                                {property.name}
-                              </h3>
-                              <Badge className={typeConfig[property.type as keyof typeof typeConfig]?.className || "bg-gray-500 text-white"}>
-                                {typeConfig[property.type as keyof typeof typeConfig]?.label || property.type}
-                              </Badge>
+                          <div className="flex items-center gap-3">
+                            {/* Property Icon */}
+                            {property.icon_url && (
+                              <img 
+                                src={property.icon_url} 
+                                alt="Property icon" 
+                                className="h-10 w-10 object-contain"
+                              />
+                            )}
+                            <div>
+                              <div className="flex items-center gap-3">
+                                <h3 className="text-lg font-semibold text-foreground">
+                                  {property.name}
+                                </h3>
+                                <Badge className={typeConfig[property.type as keyof typeof typeConfig]?.className || "bg-gray-500 text-white"}>
+                                  {typeConfig[property.type as keyof typeof typeConfig]?.label || property.type}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-primary font-medium">#{property.id.slice(0, 8)}</p>
                             </div>
-                            <p className="text-sm text-primary font-medium">#{property.id.slice(0, 8)}</p>
                           </div>
                           <div className="flex items-center gap-2">
                             <Badge className={statusConfig[property.status as keyof typeof statusConfig]?.className || "bg-gray-500 text-white"}>

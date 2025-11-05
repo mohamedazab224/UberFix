@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { LocationPicker } from "./LocationPicker";
 import { ImageUpload } from "./ImageUpload";
+import { IconPicker } from "@/components/ui/icon-picker";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -65,6 +66,7 @@ export function PropertyForm({ skipNavigation = false, onSuccess }: PropertyForm
   const [cities, setCities] = useState<any[]>([]);
   const [districts, setDistricts] = useState<any[]>([]);
   const [selectedCity, setSelectedCity] = useState<string>("");
+  const [selectedIcon, setSelectedIcon] = useState<string>("");
 
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -167,6 +169,7 @@ export function PropertyForm({ skipNavigation = false, onSuccess }: PropertyForm
           region_id: data.region_id || null,
           latitude: location?.latitude || null,
           longitude: location?.longitude || null,
+          icon_url: selectedIcon || null,
           status: "active",
           manager_id: user.id,
         }]);
@@ -249,6 +252,18 @@ export function PropertyForm({ skipNavigation = false, onSuccess }: PropertyForm
           )}
         </div>
 
+      </div>
+
+      {/* أيقونة العقار */}
+      <div className="space-y-2">
+        <Label>أيقونة العقار على الخريطة</Label>
+        <IconPicker 
+          value={selectedIcon} 
+          onValueChange={setSelectedIcon}
+        />
+        <p className="text-xs text-muted-foreground">
+          اختر أيقونة تظهر على الخريطة لتمييز هذا العقار
+        </p>
       </div>
 
       {/* صورة العقار */}

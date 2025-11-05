@@ -18,6 +18,7 @@ export interface Property {
   maintenance_schedule?: string;
   last_inspection_date?: string;
   next_inspection_date?: string;
+  icon_url?: string;
   created_at: string;
   updated_at: string;
 }
