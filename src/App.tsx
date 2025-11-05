@@ -44,6 +44,8 @@ import BlogPost from "./pages/BlogPost";
 import QuickRequest from "./pages/QuickRequest";
 import ExpenseReports from "./pages/ExpenseReports";
 import MaintenanceReports from "./pages/MaintenanceReports";
+import UserManagement from "./pages/admin/UserManagement";
+import EditProperty from "./pages/properties/EditProperty";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -148,6 +150,22 @@ const App = () => {
                   <AuthWrapper>
                     <AppLayout>
                       <AddProperty />
+                    </AppLayout>
+                  </AuthWrapper>
+                } />
+                
+                <Route path="/properties/edit/:id" element={
+                  <AuthWrapper>
+                    <AppLayout>
+                      <EditProperty />
+                    </AppLayout>
+                  </AuthWrapper>
+                } />
+                
+                <Route path="/admin/users" element={
+                  <AuthWrapper>
+                    <AppLayout>
+                      <UserManagement />
                     </AppLayout>
                   </AuthWrapper>
                 } />
