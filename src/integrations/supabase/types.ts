@@ -732,9 +732,12 @@ export type Database = {
           description: string | null
           estimated_cost: number | null
           id: string
+          latitude: number | null
           location: string | null
+          longitude: number | null
           opened_by_role: string | null
           priority: string | null
+          property_id: string | null
           rating: number | null
           service_type: string | null
           sla_deadline: string | null
@@ -763,9 +766,12 @@ export type Database = {
           description?: string | null
           estimated_cost?: number | null
           id?: string
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           opened_by_role?: string | null
           priority?: string | null
+          property_id?: string | null
           rating?: number | null
           service_type?: string | null
           sla_deadline?: string | null
@@ -794,9 +800,12 @@ export type Database = {
           description?: string | null
           estimated_cost?: number | null
           id?: string
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           opened_by_role?: string | null
           priority?: string | null
+          property_id?: string | null
           rating?: number | null
           service_type?: string | null
           sla_deadline?: string | null
@@ -842,6 +851,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_requests_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
           {

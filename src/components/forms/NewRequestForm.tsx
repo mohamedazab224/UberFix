@@ -116,17 +116,17 @@ export function NewRequestForm({ onSuccess, onCancel }: NewRequestFormProps) {
     
     try {
       // إعداد البيانات للإرسال - createRequest سيتعامل مع company_id و branch_id تلقائياً
-      const { 
-        property_id, 
-        preferred_date, 
-        preferred_time,
-        latitude,
-        longitude,
-        ...requestData 
-      } = formData;
-      
       const requestPayload = {
-        ...requestData,
+        title: formData.title,
+        description: formData.description,
+        client_name: formData.client_name,
+        client_phone: formData.client_phone,
+        location: formData.location,
+        service_type: formData.service_type,
+        priority: formData.priority,
+        property_id: formData.property_id || null,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
         status: 'Open' as const
       };
       
