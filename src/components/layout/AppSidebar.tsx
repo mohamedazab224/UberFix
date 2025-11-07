@@ -73,7 +73,7 @@ const items = [
   },
   {
     icon: MapPin,
-    label: "الخريطة",
+    label: "الخريطة التفاعلية",
     href: "/map",
     badge: "جديد"
   },

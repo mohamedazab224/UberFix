@@ -25,6 +25,7 @@ import AddProperty from "./pages/properties/AddProperty";
 import Appointments from "./pages/Appointments";
 import Invoices from "./pages/Invoices";
 import Map from "./pages/Map";
+import InteractiveMap from "./pages/MapPage";
 import EmergencyService from "./pages/EmergencyService";
 import Documentation from "./pages/Documentation";
 import UserGuide from "./pages/UserGuide";
@@ -50,9 +51,6 @@ import UserManagement from "./pages/admin/UserManagement";
 import EditProperty from "./pages/properties/EditProperty";
 import LifecycleTesting from "./pages/LifecycleTesting";
 
-// صفحات الخريطة التفاعلية
-import MapPage from "./pages/MapPage";
-import RegisterService from "./pages/RegisterService";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -84,8 +82,6 @@ const App = () => {
               <Routes>
                 {/* الصفحات العامة بدون Layout */}
                 <Route path="/" element={<Index />} />
-                <Route path="/map" element={<MapPage />} />
-                <Route path="/register-service" element={<RegisterService />} />
                 <Route path="/role-selection" element={<RoleSelection />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
@@ -199,6 +195,14 @@ const App = () => {
                   <AuthWrapper>
                     <AppLayout>
                       <Invoices />
+                    </AppLayout>
+                  </AuthWrapper>
+                } />
+                
+                <Route path="/map" element={
+                  <AuthWrapper>
+                    <AppLayout>
+                      <InteractiveMap />
                     </AppLayout>
                   </AuthWrapper>
                 } />
