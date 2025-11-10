@@ -236,6 +236,36 @@ export const projectFormSchema = z.object({
 });
 
 /**
+ * Maintenance Request Form Schema
+ */
+export const maintenanceRequestFormSchema = z.object({
+  title: titleSchema,
+  description: descriptionSchema,
+  client_name: nameSchema,
+  client_phone: egyptianPhoneSchema,
+  client_email: emailSchema.optional().or(z.literal("")),
+  location: addressSchema,
+  service_type: z.enum([
+    "plumbing",
+    "electrical",
+    "hvac",
+    "carpentry",
+    "painting",
+    "cleaning",
+    "general",
+  ]),
+  priority: z.enum(["low", "medium", "high", "urgent"]),
+  preferred_date: z.string().optional().or(z.literal("")),
+  preferred_time: z.string().optional().or(z.literal("")),
+  customer_notes: z.string().trim().max(1000).optional().or(z.literal("")),
+  latitude: z.number().optional().nullable(),
+  longitude: z.number().optional().nullable(),
+  property_id: uuidSchema.refine((val) => val && val !== "", {
+    message: "يرجى اختيار العقار",
+  }),
+});
+
+/**
  * Review Form Schema
  */
 export const reviewFormSchema = z.object({
