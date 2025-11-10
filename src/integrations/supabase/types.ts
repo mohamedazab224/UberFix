@@ -717,6 +717,7 @@ export type Database = {
           company_id: string
           created_at: string
           created_by: string | null
+          customer_notes: string | null
           description: string | null
           estimated_cost: number | null
           id: string
@@ -754,6 +755,7 @@ export type Database = {
           company_id: string
           created_at?: string
           created_by?: string | null
+          customer_notes?: string | null
           description?: string | null
           estimated_cost?: number | null
           id?: string
@@ -791,6 +793,7 @@ export type Database = {
           company_id?: string
           created_at?: string
           created_by?: string | null
+          customer_notes?: string | null
           description?: string | null
           estimated_cost?: number | null
           id?: string
