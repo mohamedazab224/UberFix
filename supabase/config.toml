@@ -66,3 +66,6 @@ verify_jwt = false
 
 [functions.twilio-delivery-status]
 verify_jwt = false
+
+[functions.send-whatsapp]
+verify_jwt = true
