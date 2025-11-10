@@ -148,9 +148,9 @@ export default function Properties() {
                 <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                   {/* Property Image */}
                   <div className="relative h-48 bg-gradient-to-br from-muted to-muted/50">
-                    {property.icon_url ? (
+                    {property.images && property.images.length > 0 ? (
                       <img 
-                        src={property.icon_url} 
+                        src={property.images[0]} 
                         alt={property.name}
                         className="w-full h-full object-cover"
                       />
@@ -159,7 +159,7 @@ export default function Properties() {
                         <Building2 className="h-20 w-20 text-muted-foreground/20" />
                       </div>
                     )}
-                    {/* Property Type Badge */}
+                    {/* Property Type Badge with Icon */}
                     <div className="absolute top-3 left-3">
                       <div className="flex items-center gap-2 bg-background/90 backdrop-blur-sm rounded-full px-3 py-1">
                         {property.icon_url && (
@@ -177,12 +177,21 @@ export default function Properties() {
                   </div>
 
                   <CardContent className="p-4 space-y-3">
-                    {/* Property Name */}
-                    <div>
-                      <h3 className="font-semibold text-lg">{property.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {typeConfig[property.type as keyof typeof typeConfig]?.label || property.type}
-                      </p>
+                    {/* Property Name with Icon */}
+                    <div className="flex items-center gap-2">
+                      {property.icon_url && (
+                        <img 
+                          src={property.icon_url} 
+                          alt="" 
+                          className="h-5 w-5"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg">{property.name}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {typeConfig[property.type as keyof typeof typeConfig]?.label || property.type}
+                        </p>
+                      </div>
                     </div>
 
                     {/* Phone */}

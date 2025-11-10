@@ -28,16 +28,18 @@ type PropertyFormData = z.infer<typeof propertyFormSchema>;
 interface PropertyFormProps {
   skipNavigation?: boolean;
   onSuccess?: () => void;
+  initialData?: any;
+  propertyId?: string;
 }
 
-export function PropertyForm({ skipNavigation = false, onSuccess }: PropertyFormProps = {}) {
+export function PropertyForm({ skipNavigation = false, onSuccess, initialData, propertyId }: PropertyFormProps = {}) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [location, setLocation] = useState<{
     latitude: number;
     longitude: number;
     address: string;
   } | null>(null);
-  const [images, setImages] = useState<File[]>([]);
+  const [propertyImages, setPropertyImages] = useState<File[]>([]);
   const [cities, setCities] = useState<any[]>([]);
   const [districts, setDistricts] = useState<any[]>([]);
   const [selectedCity, setSelectedCity] = useState<string>("");
@@ -51,6 +53,7 @@ export function PropertyForm({ skipNavigation = false, onSuccess }: PropertyForm
     formState: { errors },
     setValue,
     watch,
+    reset,
   } = useForm<PropertyFormData>({
     resolver: zodResolver(propertyFormSchema),
     defaultValues: {
@@ -65,6 +68,37 @@ export function PropertyForm({ skipNavigation = false, onSuccess }: PropertyForm
   });
 
   const propertyType = watch("type");
+
+  // Load initial data for editing
+  React.useEffect(() => {
+    if (initialData) {
+      reset({
+        type: initialData.type || "residential",
+        code: initialData.code || "",
+        name: initialData.name || "",
+        address: initialData.address || "",
+        city_id: initialData.city_id?.toString() || "",
+        district_id: initialData.district_id?.toString() || "",
+        area: initialData.area,
+        rooms: initialData.rooms,
+        bathrooms: initialData.bathrooms,
+        floors: initialData.floors,
+        description: initialData.description,
+      });
+      
+      if (initialData.city_id) {
+        setSelectedCity(initialData.city_id.toString());
+      }
+      
+      if (initialData.latitude && initialData.longitude) {
+        setLocation({
+          latitude: initialData.latitude,
+          longitude: initialData.longitude,
+          address: initialData.address,
+        });
+      }
+    }
+  }, [initialData, reset]);
 
   // Fetch cities
   React.useEffect(() => {
@@ -122,16 +156,44 @@ export function PropertyForm({ skipNavigation = false, onSuccess }: PropertyForm
       // Generate QR code URL
       const qrCodeData = `${window.location.origin}/quick-request/property-${data.code}`;
 
-      // إنشاء العقار مع حفظ إحداثيات الخريطة
-      const { error: insertError } = await supabase
-        .from("properties")
-        .insert([{
-          code: data.code.trim(),
+      // Upload images if any
+      let imageUrls: string[] = [];
+      if (propertyImages.length > 0) {
+        const uploadPromises = propertyImages.map(async (file, index) => {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${data.code}_${index}_${Date.now()}.${fileExt}`;
+          const filePath = `properties/${fileName}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from('property-images')
+            .upload(filePath, file);
+
+          if (uploadError) {
+            console.error('Upload error:', uploadError);
+            return null;
+          }
+
+          const { data: urlData } = supabase.storage
+            .from('property-images')
+            .getPublicUrl(filePath);
+
+          return urlData.publicUrl;
+        });
+
+        const results = await Promise.all(uploadPromises);
+        imageUrls = results.filter((url): url is string => url !== null);
+      }
+
+      // Check if this is an update or insert
+      if (propertyId) {
+        // Update existing property
+        const updateData: any = {
           name: data.name.trim(),
+          code: data.code.trim(),
           type: data.type,
+          address: data.address.trim(),
           city_id: parseInt(data.city_id),
           district_id: parseInt(data.district_id),
-          address: data.address.trim(),
           area: data.area || null,
           rooms: data.rooms || null,
           bathrooms: data.bathrooms || null,
@@ -140,21 +202,64 @@ export function PropertyForm({ skipNavigation = false, onSuccess }: PropertyForm
           latitude: location?.latitude || null,
           longitude: location?.longitude || null,
           icon_url: iconUrl,
-          qr_code_data: qrCodeData,
-          qr_code_generated_at: new Date().toISOString(),
-          status: "active",
-          manager_id: user.id,
-        }]);
+          updated_at: new Date().toISOString(),
+        };
 
-      if (insertError) {
-        console.error("Insert error:", insertError);
-        throw new Error(insertError.message || "حدث خطأ أثناء إضافة العقار");
+        // Only update images if new ones were uploaded
+        if (imageUrls.length > 0) {
+          updateData.images = imageUrls;
+        }
+
+        const { error: updateError } = await supabase
+          .from("properties")
+          .update(updateData)
+          .eq("id", propertyId);
+
+        if (updateError) {
+          console.error("Update error:", updateError);
+          throw new Error(updateError.message || "حدث خطأ أثناء تحديث العقار");
+        }
+
+        toast({
+          title: "تم بنجاح ✓",
+          description: "تم تحديث العقار بنجاح",
+        });
+      } else {
+        // Insert new property
+        const { error: insertError } = await supabase
+          .from("properties")
+          .insert([{
+            code: data.code.trim(),
+            name: data.name.trim(),
+            type: data.type,
+            city_id: parseInt(data.city_id),
+            district_id: parseInt(data.district_id),
+            address: data.address.trim(),
+            area: data.area || null,
+            rooms: data.rooms || null,
+            bathrooms: data.bathrooms || null,
+            floors: data.floors || null,
+            description: data.description?.trim() || null,
+            latitude: location?.latitude || null,
+            longitude: location?.longitude || null,
+            icon_url: iconUrl,
+            images: imageUrls.length > 0 ? imageUrls : null,
+            qr_code_data: qrCodeData,
+            qr_code_generated_at: new Date().toISOString(),
+            status: "active",
+            manager_id: user.id,
+          }]);
+
+        if (insertError) {
+          console.error("Insert error:", insertError);
+          throw new Error(insertError.message || "حدث خطأ أثناء إضافة العقار");
+        }
+
+        toast({
+          title: "تم بنجاح ✓",
+          description: "تم إضافة العقار بنجاح",
+        });
       }
-
-      toast({
-        title: "تم بنجاح ✓",
-        description: "تم إضافة العقار بنجاح",
-      });
 
       if (onSuccess) {
         onSuccess();
@@ -165,8 +270,8 @@ export function PropertyForm({ skipNavigation = false, onSuccess }: PropertyForm
       console.error("Submit error:", error);
       toast({
         variant: "destructive",
-        title: "خطأ في الإضافة",
-        description: error.message || "حدث خطأ أثناء إضافة العقار. يرجى المحاولة مرة أخرى",
+        title: "خطأ في الحفظ",
+        description: error.message || "حدث خطأ أثناء حفظ العقار. يرجى المحاولة مرة أخرى",
       });
     } finally {
       setIsSubmitting(false);
@@ -238,13 +343,16 @@ export function PropertyForm({ skipNavigation = false, onSuccess }: PropertyForm
         </div>
       </div>
 
-      {/* صورة العقار */}
+      {/* صور العقار */}
       <div className="space-y-2">
-        <Label>صورة العقار</Label>
+        <Label>صور العقار</Label>
+        <p className="text-sm text-muted-foreground mb-2">
+          يمكنك إضافة صور للعقار (الصور تظهر في الواجهة الرئيسية، الأيقونة تستخدم للخرائط وبجانب اسم العقار)
+        </p>
         <ImageUpload
-          images={images}
-          onImagesChange={setImages}
-          maxImages={5}
+          images={propertyImages}
+          onImagesChange={setPropertyImages}
+          maxImages={10}
         />
         <p className="text-xs text-muted-foreground">
           سيتم اختيار أيقونة العقار تلقائياً حسب نوع العقار

@@ -1289,6 +1289,7 @@ export type Database = {
           floors: number | null
           icon_url: string | null
           id: string
+          images: string[] | null
           last_inspection_date: string | null
           latitude: number | null
           longitude: number | null
@@ -1319,6 +1320,7 @@ export type Database = {
           floors?: number | null
           icon_url?: string | null
           id?: string
+          images?: string[] | null
           last_inspection_date?: string | null
           latitude?: number | null
           longitude?: number | null
@@ -1349,6 +1351,7 @@ export type Database = {
           floors?: number | null
           icon_url?: string | null
           id?: string
+          images?: string[] | null
           last_inspection_date?: string | null
           latitude?: number | null
           longitude?: number | null

@@ -23,6 +23,7 @@ export interface Property {
   qr_code_data?: string;
   city_id?: number;
   district_id?: number;
+  images?: string[];
   created_at: string;
   updated_at: string;
 }
