@@ -27,6 +27,8 @@ import { useTechnicians, Technician } from '@/hooks/useTechnicians';
 import { SimpleServiceCard } from '@/components/maps/SimpleServiceCard';
 import { EnhancedServiceCard } from '@/components/maps/EnhancedServiceCard';
 import { BranchInfoWindow } from '@/components/maps/BranchInfoWindow';
+import { TechnicianInfoWindow } from '@/components/maps/TechnicianInfoWindow';
+import { NewRequestFormDialog } from '@/components/forms/NewRequestFormDialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { getCachedApiKey, setCachedApiKey } from '@/lib/mapsCache';
@@ -237,31 +239,27 @@ export default function ServiceMap() {
         const root = createRoot(infoDiv);
         
         let infoWindow: google.maps.InfoWindow | null = null;
+        let isRequestDialogOpen = false;
         
-        // Calculate distance if user location is available
-        let distance = null;
-        if (userLocation) {
-          const R = 6371; // Earth radius in km
-          const dLat = (position.lat - userLocation.lat) * Math.PI / 180;
-          const dLng = (position.lng - userLocation.lng) * Math.PI / 180;
-          const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                    Math.cos(userLocation.lat * Math.PI / 180) * Math.cos(position.lat * Math.PI / 180) *
-                    Math.sin(dLng/2) * Math.sin(dLng/2);
-          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-          distance = (R * c).toFixed(1);
-        }
+        const handleRequestService = () => {
+          // Close info window first
+          if (infoWindow) {
+            infoWindow.close();
+          }
+          
+          // Navigate to quick request page with technician info
+          navigate(`/quick-request?technicianId=${tech.id}&technicianName=${encodeURIComponent(tech.name)}`);
+        };
         
         root.render(
-          <EnhancedServiceCard
-            technicianId={tech.id}
+          <TechnicianInfoWindow
             name={tech.name}
             specialization={tech.specialization || 'فني صيانة'}
             rating={tech.rating || 4.7}
-            totalReviews={tech.total_reviews || 0}
+            totalReviews={tech.total_reviews || 82}
             status={tech.status === 'online' ? 'available' : 'busy'}
-            hourlyRate={tech.hourly_rate || 0}
             phone={tech.phone || ''}
-            distance={distance}
+            onRequestService={handleRequestService}
             onClose={() => {
               if (infoWindow) {
                 infoWindow.close();
@@ -273,7 +271,7 @@ export default function ServiceMap() {
         infoWindow = new google.maps.InfoWindow({
           content: infoDiv,
           disableAutoPan: false,
-          maxWidth: 350,
+          maxWidth: 380,
         });
         infoWindow.open(map, marker);
         
