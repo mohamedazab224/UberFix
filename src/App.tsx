@@ -39,6 +39,8 @@ import ProductionReport from "./pages/ProductionReport";
 import ProductionMonitor from "./pages/ProductionMonitor";
 import NotFound from "./pages/NotFound";
 import About from "./pages/About";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 import Services from "./pages/Services";
 import ServiceRequest from "./pages/ServiceRequest";
 import Gallery from "./pages/Gallery";
@@ -87,6 +89,8 @@ const App = () => {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/about" element={<About />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="/terms-of-service" element={<TermsOfService />} />
                 <Route path="/services" element={<Services />} />
                 <Route path="/gallery" element={<Gallery />} />
                 <Route path="/projects" element={<Projects />} />
