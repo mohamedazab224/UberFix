@@ -24,6 +24,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { useTechnicians, Technician } from '@/hooks/useTechnicians';
+import { useBranchLocations } from '@/hooks/useBranchLocations';
 import { SimpleServiceCard } from '@/components/maps/SimpleServiceCard';
 import { EnhancedServiceCard } from '@/components/maps/EnhancedServiceCard';
 import { BranchInfoWindow } from '@/components/maps/BranchInfoWindow';
@@ -50,9 +51,10 @@ export default function ServiceMap() {
   
   const [branches, setBranches] = useState<any[]>([]);
   const { technicians, specializationIcons, loading: techniciansLoading, refetch: refetchTechnicians } = useTechnicians();
+  const { branches: branchLocations, loading: branchesLoading } = useBranchLocations();
   const { toast } = useToast();
   
-  const loading = techniciansLoading;
+  const loading = techniciansLoading || branchesLoading;
 
   useEffect(() => {
     fetchApiKey();
@@ -65,7 +67,7 @@ export default function ServiceMap() {
   }, [apiKey]);
 
   useEffect(() => {
-    if (map && (branches.length > 0 || technicians.length > 0)) {
+    if (map && (branchLocations.length > 0 || technicians.length > 0)) {
       updateMarkers();
     }
 
@@ -73,7 +75,7 @@ export default function ServiceMap() {
     return () => {
       markers.forEach(marker => marker.setMap(null));
     };
-  }, [map, branches, technicians, selectedSpecialization]);
+  }, [map, branchLocations, technicians, selectedSpecialization]);
 
   const fetchApiKey = async () => {
     try {
@@ -164,19 +166,28 @@ export default function ServiceMap() {
     const customerMarkers: google.maps.Marker[] = [];
     const bounds = new google.maps.LatLngBounds();
 
-    // Add customer location markers (from branch_locations)
-    const customerIcon = '/icons/pin-pro/customers.png';
-    const geocoder = new google.maps.Geocoder();
+    // Add branch location markers from database (stores/clients)
+    const branchIcon = 'https://al-azab.co/img/icons-shop.png';
     
-    const addCustomerMarker = (position: { lat: number; lng: number }, name: string) => {
+    branchLocations.forEach((branch) => {
+      if (!branch.latitude || !branch.longitude) return;
+      
+      const lat = parseFloat(branch.latitude);
+      const lng = parseFloat(branch.longitude);
+      
+      if (isNaN(lat) || isNaN(lng)) return;
+      
+      const position = { lat, lng };
+      const iconUrl = branch.icon || branchIcon;
+      
       const marker = new google.maps.Marker({
         map,
         position,
-        title: name,
+        title: branch.branch,
         icon: {
-          url: customerIcon,
-          scaledSize: new google.maps.Size(50, 60),
-          anchor: new google.maps.Point(25, 60),
+          url: iconUrl,
+          scaledSize: new google.maps.Size(32, 32), // مقاس موحد للمحلات
+          anchor: new google.maps.Point(16, 32),
           origin: new google.maps.Point(0, 0),
         },
         optimized: false,
@@ -185,25 +196,25 @@ export default function ServiceMap() {
       marker.addListener('click', () => {
         const infoWindow = new google.maps.InfoWindow({
           content: `
-            <div style="padding: 12px; font-family: Arial; min-width: 150px;">
-              <h3 style="font-weight: bold; margin: 0 0 8px 0; color: #111; font-size: 16px;">${name}</h3>
-              <p style="margin: 0; color: #666; font-size: 14px;">📍 موقع عميل</p>
+            <div style="padding: 12px; font-family: Arial; min-width: 200px;">
+              <h3 style="font-weight: bold; margin: 0 0 8px 0; color: #111; font-size: 16px;">${branch.branch}</h3>
+              ${branch.address ? `<p style="margin: 4px 0; color: #666; font-size: 14px;">📍 ${branch.address}</p>` : ''}
+              ${branch.branch_type ? `<p style="margin: 4px 0; color: #888; font-size: 12px;">النوع: ${branch.branch_type}</p>` : ''}
+              ${branch.link ? `<a href="${branch.link}" target="_blank" style="color: #f5bf23; text-decoration: none; font-size: 13px;">🗺️ عرض على الخريطة</a>` : ''}
             </div>
           `
         });
         infoWindow.open(map, marker);
         map.panTo(position);
-        map.setZoom(14);
+        map.setZoom(16);
       });
 
       customerMarkers.push(marker);
       newMarkers.push(marker);
       bounds.extend(position);
-    };
-    
-    // Branch locations feature removed - was using deprecated BRANCH_LOCATIONS data
+    });
 
-    // Add branch markers - currently disabled (branches feature removed)
+    console.log(`✅ Added ${branchLocations.length} branch location markers`);
 
     // Add technician markers
     const filteredTechs = selectedSpecialization 
@@ -226,8 +237,8 @@ export default function ServiceMap() {
         title: tech.name,
         icon: {
           url: iconUrl,
-          scaledSize: new google.maps.Size(50, 60),
-          anchor: new google.maps.Point(25, 60),
+          scaledSize: new google.maps.Size(40, 40), // مقاس موحد للفنيين
+          anchor: new google.maps.Point(20, 40),
           origin: new google.maps.Point(0, 0),
         },
         optimized: false,
@@ -296,9 +307,9 @@ export default function ServiceMap() {
             return new google.maps.Marker({
               position,
               icon: {
-                url: customerIcon,
-                scaledSize: new google.maps.Size(50, 60),
-                anchor: new google.maps.Point(25, 60),
+                url: branchIcon,
+                scaledSize: new google.maps.Size(40, 40),
+                anchor: new google.maps.Point(20, 40),
                 origin: new google.maps.Point(0, 0),
               },
               label: {
@@ -319,6 +330,8 @@ export default function ServiceMap() {
     if (newMarkers.length > 0) {
       map.fitBounds(bounds);
     }
+    
+    console.log(`✅ Total markers: ${newMarkers.length} (${branchLocations.length} branches + ${filteredTechs.length} technicians)`);
   };
 
   // Helper to parse map_url - currently disabled
