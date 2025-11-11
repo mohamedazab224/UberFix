@@ -51,6 +51,7 @@ import ExpenseReports from "./pages/ExpenseReports";
 import MaintenanceReports from "./pages/MaintenanceReports";
 import UserManagement from "./pages/admin/UserManagement";
 import WhatsAppMessages from "./pages/WhatsAppMessages";
+import MessageLogs from "./pages/MessageLogs";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -327,6 +328,14 @@ const App = () => {
                   <AuthWrapper>
                     <AppLayout>
                       <WhatsAppMessages />
+                    </AppLayout>
+                  </AuthWrapper>
+                } />
+                
+                <Route path="/message-logs" element={
+                  <AuthWrapper>
+                    <AppLayout>
+                      <MessageLogs />
                     </AppLayout>
                   </AuthWrapper>
                 } />

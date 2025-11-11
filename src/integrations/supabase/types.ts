@@ -869,6 +869,65 @@ export type Database = {
           },
         ]
       }
+      message_logs: {
+        Row: {
+          created_at: string
+          delivered_at: string | null
+          error_message: string | null
+          external_id: string | null
+          id: string
+          message_content: string
+          message_type: string
+          metadata: Json | null
+          provider: string
+          recipient: string
+          request_id: string | null
+          sent_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
+          external_id?: string | null
+          id?: string
+          message_content: string
+          message_type: string
+          metadata?: Json | null
+          provider?: string
+          recipient: string
+          request_id?: string | null
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
+          external_id?: string | null
+          id?: string
+          message_content?: string
+          message_type?: string
+          metadata?: Json | null
+          provider?: string
+          recipient?: string
+          request_id?: string | null
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_logs_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -876,12 +935,15 @@ export type Database = {
           entity_type: string | null
           id: string
           message: string
+          message_log_id: string | null
           read_at: string | null
           recipient_id: string
           sender_id: string | null
+          sms_sent: boolean | null
           title: string
           type: string
           updated_at: string
+          whatsapp_sent: boolean | null
         }
         Insert: {
           created_at?: string
@@ -889,12 +951,15 @@ export type Database = {
           entity_type?: string | null
           id?: string
           message: string
+          message_log_id?: string | null
           read_at?: string | null
           recipient_id: string
           sender_id?: string | null
+          sms_sent?: boolean | null
           title: string
           type?: string
           updated_at?: string
+          whatsapp_sent?: boolean | null
         }
         Update: {
           created_at?: string
@@ -902,14 +967,25 @@ export type Database = {
           entity_type?: string | null
           id?: string
           message?: string
+          message_log_id?: string | null
           read_at?: string | null
           recipient_id?: string
           sender_id?: string | null
+          sms_sent?: boolean | null
           title?: string
           type?: string
           updated_at?: string
+          whatsapp_sent?: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "notifications_message_log_id_fkey"
+            columns: ["message_log_id"]
+            isOneToOne: false
+            referencedRelation: "message_logs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
