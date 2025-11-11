@@ -167,7 +167,8 @@ export default function ServiceMap() {
     const bounds = new google.maps.LatLngBounds();
 
     // Add branch location markers from database (stores/clients)
-    const branchIcon = 'https://al-azab.co/img/icons-shop.png';
+    // استخدام أيقونة من مجلد الأصول
+    const branchIcon = '/icons/pin-pro/customers.svg';
     
     branchLocations.forEach((branch) => {
       if (!branch.latitude || !branch.longitude) return;
@@ -178,7 +179,8 @@ export default function ServiceMap() {
       if (isNaN(lat) || isNaN(lng)) return;
       
       const position = { lat, lng };
-      const iconUrl = branch.icon || branchIcon;
+      // استخدام الأيقونة من مجلد الأصول بدلاً من جدول القاعدة
+      const iconUrl = branchIcon;
       
       const marker = new google.maps.Marker({
         map,
@@ -186,8 +188,8 @@ export default function ServiceMap() {
         title: branch.branch,
         icon: {
           url: iconUrl,
-          scaledSize: new google.maps.Size(32, 32), // مقاس موحد للمحلات
-          anchor: new google.maps.Point(16, 32),
+          scaledSize: new google.maps.Size(48, 48), // حجم أكبر للوضوح
+          anchor: new google.maps.Point(24, 48),
           origin: new google.maps.Point(0, 0),
         },
         optimized: false,
@@ -237,8 +239,8 @@ export default function ServiceMap() {
         title: tech.name,
         icon: {
           url: iconUrl,
-          scaledSize: new google.maps.Size(40, 40), // مقاس موحد للفنيين
-          anchor: new google.maps.Point(20, 40),
+          scaledSize: new google.maps.Size(48, 48), // حجم أكبر ومتناسق
+          anchor: new google.maps.Point(24, 48),
           origin: new google.maps.Point(0, 0),
         },
         optimized: false,
@@ -515,27 +517,36 @@ export default function ServiceMap() {
 
       {/* Main Content Area */}
       <div className="flex-1 relative flex">
-        {/* Technicians Sidebar */}
+        {/* Technicians Sidebar - قابلة للسحب */}
         {showSidebar && (
-          <div className="w-48 border-l bg-card overflow-hidden flex flex-col">
-            <div className="px-2 py-3 border-b bg-card/95 backdrop-blur-sm">
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="font-semibold text-xs flex items-center gap-1">
-                  <Users className="h-4 w-4" />
-                  الفنيون ({technicians.filter(t => t.current_latitude && t.current_longitude).length})
+          <div className="w-80 border-l bg-card/95 backdrop-blur-sm shadow-xl overflow-hidden flex flex-col">
+            <div className="px-4 py-3 border-b bg-gradient-to-l from-primary/10 to-transparent sticky top-0 z-10">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-base flex items-center gap-2">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <Users className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <span className="text-foreground">الفنيون المتاحون</span>
+                    <span className="block text-xs text-muted-foreground font-normal">
+                      {technicians.filter(t => t.current_latitude && t.current_longitude).length} فني نشط
+                    </span>
+                  </div>
                 </h3>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6"
+                  className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
                   onClick={() => setShowSidebar(false)}
                 >
-                  <X className="h-3 w-3" />
+                  <X className="h-4 w-4" />
                 </Button>
               </div>
             </div>
-            <ScrollArea className="flex-1 p-2">
-              <div className="space-y-1.5">
+            
+            {/* القائمة القابلة للسحب */}
+            <ScrollArea className="flex-1 px-3 py-2">
+              <div className="space-y-2.5 pb-4">
                 {technicians
                   .filter(t => t.current_latitude && t.current_longitude)
                   .filter(t => !selectedSpecialization || t.specialization === selectedSpecialization)
@@ -558,60 +569,72 @@ export default function ServiceMap() {
                     return (
                       <Card
                         key={tech.id}
-                        className="cursor-pointer transition-all hover:shadow-md hover:border-primary/50"
+                        className="group cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-primary/60 hover:scale-[1.02] bg-card/60 backdrop-blur-sm"
                         onClick={() => {
                           if (tech.current_latitude && tech.current_longitude && map) {
                             map.panTo({ lat: tech.current_latitude, lng: tech.current_longitude });
-                            map.setZoom(15);
+                            map.setZoom(16);
                           }
                         }}
                       >
-                        <CardContent className="p-2">
-                          <div className="space-y-1.5">
-                            <div className="flex items-start justify-between gap-1">
+                        <CardContent className="p-3.5">
+                          <div className="space-y-2.5">
+                            {/* Header مع الاسم والحالة */}
+                            <div className="flex items-start justify-between gap-2">
                               <div className="flex-1 min-w-0">
-                                <h4 className="font-semibold text-xs truncate">{tech.name}</h4>
-                                <p className="text-[10px] text-muted-foreground truncate">{tech.specialization}</p>
+                                <h4 className="font-bold text-sm truncate text-foreground group-hover:text-primary transition-colors">
+                                  {tech.name}
+                                </h4>
+                                <p className="text-xs text-muted-foreground truncate mt-0.5">
+                                  {tech.specialization}
+                                </p>
                               </div>
                               <Badge 
                                 variant={tech.status === 'online' ? 'default' : 'secondary'}
-                                className="text-[9px] px-1.5 py-0 shrink-0"
+                                className="text-[10px] px-2 py-0.5 shrink-0 font-medium"
                               >
-                                {tech.status === 'online' ? 'متاح' : 'مشغول'}
+                                {tech.status === 'online' ? '● متاح' : '⏸ مشغول'}
                               </Badge>
                             </div>
                             
-                            <div className="flex flex-col gap-1 text-[10px]">
-                              <div className="flex items-center gap-1">
-                                <Star className="h-2.5 w-2.5 fill-yellow-500 text-yellow-500" />
-                                <span className="font-medium">{tech.rating.toFixed(1)}</span>
+                            {/* التقييم والمسافة والسعر */}
+                            <div className="flex flex-wrap gap-3 text-xs">
+                              <div className="flex items-center gap-1.5 text-amber-600">
+                                <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+                                <span className="font-semibold">{tech.rating.toFixed(1)}</span>
+                                <span className="text-muted-foreground text-[10px]">
+                                  ({tech.total_reviews || 0})
+                                </span>
                               </div>
                               
                               {distance && (
-                                <div className="flex items-center gap-1 text-muted-foreground">
-                                  <MapPin className="h-2.5 w-2.5" />
-                                  <span>{distance} كم</span>
+                                <div className="flex items-center gap-1.5 text-muted-foreground">
+                                  <MapPin className="h-3.5 w-3.5 text-primary" />
+                                  <span className="font-medium">{distance} كم</span>
                                 </div>
                               )}
                               
                               {tech.hourly_rate && tech.hourly_rate > 0 && (
-                                <div className="flex items-center gap-1 text-muted-foreground">
-                                  <DollarSign className="h-2.5 w-2.5" />
-                                  <span>{tech.hourly_rate} ج.م/س</span>
+                                <div className="flex items-center gap-1.5 text-muted-foreground">
+                                  <DollarSign className="h-3.5 w-3.5 text-green-600" />
+                                  <span className="font-medium">{tech.hourly_rate} ج.م/س</span>
                                 </div>
                               )}
                             </div>
                             
+                            {/* رقم الهاتف */}
                             {tech.phone && (
-                              <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                                <Phone className="h-2.5 w-2.5" />
-                                <a 
-                                  href={`tel:${tech.phone}`}
-                                  className="text-primary hover:underline truncate"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  {tech.phone}
-                                </a>
+                              <div className="pt-2 border-t border-border/50">
+                                <div className="flex items-center gap-2 text-xs">
+                                  <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+                                  <a 
+                                    href={`tel:${tech.phone}`}
+                                    className="text-primary hover:underline font-medium flex-1 truncate"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    {tech.phone}
+                                  </a>
+                                </div>
                               </div>
                             )}
                           </div>
@@ -633,8 +656,8 @@ export default function ServiceMap() {
             <div className="absolute top-4 left-4 z-10">
               <Button
                 size="icon"
-                variant="secondary"
-                className="rounded-full shadow-lg"
+                variant="default"
+                className="rounded-full shadow-xl hover:scale-110 transition-transform"
                 onClick={() => setShowSidebar(true)}
               >
                 <Menu className="h-5 w-5" />
