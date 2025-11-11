@@ -57,6 +57,7 @@ import WhatsAppMessages from "./pages/WhatsAppMessages";
 import MessageLogs from "./pages/MessageLogs";
 import AuthCallback from "./pages/AuthCallback";
 import ForgotPassword from "./pages/ForgotPassword";
+import Inbox from "./pages/Inbox";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -354,6 +355,12 @@ const App = () => {
                     <AppLayout>
                       <MessageLogs />
                     </AppLayout>
+                  </AuthWrapper>
+                } />
+                
+                <Route path="/inbox" element={
+                  <AuthWrapper>
+                    <Inbox />
                   </AuthWrapper>
                 } />
               </Routes>
