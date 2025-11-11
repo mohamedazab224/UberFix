@@ -55,6 +55,7 @@ import UserManagement from "./pages/admin/UserManagement";
 import WhatsAppMessages from "./pages/WhatsAppMessages";
 import MessageLogs from "./pages/MessageLogs";
 import AuthCallback from "./pages/AuthCallback";
+import ForgotPassword from "./pages/ForgotPassword";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -89,6 +90,7 @@ const App = () => {
                 <Route path="/role-selection" element={<RoleSelection />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />

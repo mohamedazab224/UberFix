@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, ArrowRight, Cog } from "lucide-react";
+import { FcGoogle } from "react-icons/fc";
 import { registerFormSchema } from "@/lib/validationSchemas";
 
 type RegisterFormData = z.infer<typeof registerFormSchema>;
@@ -76,6 +77,40 @@ export default function Register() {
           return;
         }
         navigate("/login");
+      }
+    } catch (error) {
+      toast({
+        title: "حدث خطأ",
+        description: "حاول مرة أخرى لاحقاً",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignup = async () => {
+    setIsLoading(true);
+    try {
+      const redirectUrl = `${window.location.origin}/auth/callback`;
+      
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
+        }
+      });
+
+      if (error) {
+        toast({
+          title: "خطأ في التسجيل",
+          description: error.message,
+          variant: "destructive",
+        });
       }
     } catch (error) {
       toast({
@@ -200,6 +235,26 @@ export default function Register() {
                     <ArrowRight className="mr-2 h-4 w-4" />
                   </>
                 )}
+              </Button>
+
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">أو</span>
+                </div>
+              </div>
+
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="w-full" 
+                onClick={handleGoogleSignup}
+                disabled={isLoading}
+              >
+                <FcGoogle className="ml-2 h-5 w-5" />
+                التسجيل باستخدام Google
               </Button>
             </form>
           </Form>
