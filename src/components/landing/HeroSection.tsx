@@ -1,23 +1,34 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Play, Wrench, Building2, Zap, Droplets } from "lucide-react";
+import { ArrowLeft, Play, Wrench, Building2, Zap, Droplets, MapPin, Sparkles } from "lucide-react";
 import { RotatingText } from "./RotatingText";
+import { InteractiveMap } from "./InteractiveMap";
 
 export const HeroSection = () => {
   return (
     <section className="relative min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/10 overflow-hidden">
-      {/* Background Image with Overlay */}
+      {/* Animated Background Pattern */}
       <div className="absolute inset-0">
-        <img 
-          src="https://zrrffsjbfkphridqyais.supabase.co/storage/v1/object/public/az_gallery/images/construction/abuauf_47.jpg"
-          alt="تجهيز المحلات"
-          className="w-full h-full object-cover opacity-10"
-        />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#f5bf2320_1px,transparent_1px),linear-gradient(to_bottom,#f5bf2320_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
         <div className="absolute inset-0 bg-gradient-to-br from-background/95 via-background/90 to-primary/20"></div>
+        
+        {/* Floating Shapes */}
+        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-pulse-soft"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/5 rounded-full blur-3xl animate-pulse-soft" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-primary/3 rounded-full blur-3xl animate-float"></div>
       </div>
       
       <div className="container mx-auto px-4 py-20 relative z-10">
+        {/* Top Badge */}
+        <div className="flex justify-center mb-8 animate-float">
+          <div className="bg-white/80 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary animate-pulse-soft" />
+            <span className="text-sm font-medium">نخدم أكثر من 8 مدن في جميع أنحاء مصر</span>
+            <MapPin className="h-5 w-5 text-primary animate-pulse-soft" />
+          </div>
+        </div>
+
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Content */}
           <div className="space-y-8">
@@ -110,53 +121,9 @@ export const HeroSection = () => {
             </div>
           </div>
 
-          {/* Services Showcase */}
-          <div className="relative">
-            <div className="grid grid-cols-2 gap-4">
-              <Card className="p-4 shadow-xl border-0 overflow-hidden group cursor-pointer">
-                <img 
-                  src="https://zrrffsjbfkphridqyais.supabase.co/storage/v1/object/public/az_gallery/images/maintenance/00451-klima-montaj.jpg"
-                  alt="تركيب مكيفات"
-                  className="w-full h-32 object-cover rounded-lg mb-3 group-hover:scale-110 transition-transform duration-300"
-                />
-                <h3 className="font-semibold text-sm mb-1">تركيب المكيفات</h3>
-                <p className="text-xs text-muted-foreground">تركيب وصيانة جميع أنواع المكيفات</p>
-              </Card>
-
-              <Card className="p-4 shadow-xl border-0 overflow-hidden group cursor-pointer">
-                <img 
-                  src="https://zrrffsjbfkphridqyais.supabase.co/storage/v1/object/public/az_gallery/images/maintenance/62294-establish-electricity.jpg"
-                  alt="تأسيس كهرباء"
-                  className="w-full h-32 object-cover rounded-lg mb-3 group-hover:scale-110 transition-transform duration-300"
-                />
-                <h3 className="font-semibold text-sm mb-1">أعمال الكهرباء</h3>
-                <p className="text-xs text-muted-foreground">تأسيس وصيانة التمديدات الكهربائية</p>
-              </Card>
-
-              <Card className="p-4 shadow-xl border-0 overflow-hidden group cursor-pointer">
-                <img 
-                  src="https://zrrffsjbfkphridqyais.supabase.co/storage/v1/object/public/az_gallery/images/maintenance/05214-water-leak-repair.jpg"
-                  alt="إصلاح تسريبات المياه"
-                  className="w-full h-32 object-cover rounded-lg mb-3 group-hover:scale-110 transition-transform duration-300"
-                />
-                <h3 className="font-semibold text-sm mb-1">معالجة التسريبات</h3>
-                <p className="text-xs text-muted-foreground">كشف وإصلاح تسريبات المياه</p>
-              </Card>
-
-              <Card className="p-4 shadow-xl border-0 overflow-hidden group cursor-pointer">
-                <img 
-                  src="https://zrrffsjbfkphridqyais.supabase.co/storage/v1/object/public/az_gallery/images/construction/abuauf_10.jpg"
-                  alt="تجهيز محلات"
-                  className="w-full h-32 object-cover rounded-lg mb-3 group-hover:scale-110 transition-transform duration-300"
-                />
-                <h3 className="font-semibold text-sm mb-1">تجهيز المحلات</h3>
-                <p className="text-xs text-muted-foreground">تجهيز كامل للمحلات التجارية</p>
-              </Card>
-            </div>
-
-            {/* Floating Elements */}
-            <div className="absolute -top-4 -right-4 w-16 h-16 bg-primary/10 rounded-full animate-pulse"></div>
-            <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-secondary/10 rounded-full animate-pulse delay-1000"></div>
+          {/* Interactive Map */}
+          <div className="relative h-[600px] lg:h-[700px]">
+            <InteractiveMap />
           </div>
         </div>
       </div>
