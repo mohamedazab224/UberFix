@@ -1,21 +1,5 @@
-import { Loader } from '@googlemaps/js-api-loader';
-
-// Singleton instance for Google Maps Loader
-let loaderInstance: Loader | null = null;
+// Singleton for Google Maps loading
 let loadPromise: Promise<void> | null = null;
-
-export const getGoogleMapsLoader = (apiKey: string): Loader => {
-  if (!loaderInstance) {
-    loaderInstance = new Loader({
-      apiKey: apiKey,
-      version: 'weekly',
-      libraries: ['places', 'geometry'],
-      language: 'ar',
-      region: 'EG'
-    });
-  }
-  return loaderInstance;
-};
 
 export const loadGoogleMaps = async (apiKey: string): Promise<void> => {
   if (!loadPromise) {
@@ -32,6 +16,5 @@ export const loadGoogleMaps = async (apiKey: string): Promise<void> => {
 };
 
 export const resetGoogleMapsLoader = () => {
-  loaderInstance = null;
   loadPromise = null;
 };
