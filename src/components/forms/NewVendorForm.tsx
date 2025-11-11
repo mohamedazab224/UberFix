@@ -67,56 +67,58 @@ export const NewVendorForm = ({ onClose, onSuccess }: NewVendorFormProps) => {
 
   const onSubmit = async (data: VendorFormData) => {
     try {
-      // جلب user_id لإنشاء profile أولاً
+      // التحقق من تسجيل الدخول
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error("يجب تسجيل الدخول أولاً");
       }
 
-      // إنشاء profile للمورد في جدول profiles أولاً
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .insert([{
-          name: data.name,
-          email: data.email || `vendor_${Date.now()}@temp.com`,
-          role: 'technician',
-          phone: data.phone || null,
-        }])
-        .select()
-        .single();
+      // إنشاء المورد مباشرة في جدول vendors
+      const vendorData = {
+        name: data.name,
+        company_name: data.company_name || null,
+        specialization: data.specialization,
+        phone: data.phone || null,
+        email: data.email || null,
+        address: data.address || null,
+        unit_rate: data.unit_rate && data.unit_rate !== "" ? parseFloat(data.unit_rate) : null,
+        experience_years: data.experience_years && data.experience_years !== "" ? parseInt(data.experience_years) : null,
+        status: 'active',
+        certifications: certifications.length > 0 ? certifications : null,
+        map_icon: mapIcon || null
+      };
 
-      if (profileError) throw profileError;
-
-      // ثم إنشاء المورد في جدول vendors
       const { error } = await supabase
         .from('vendors')
-        .insert([{
-          id: profileData.id,
-          name: data.name,
-          company_name: data.company_name || null,
-          specialization: data.specialization,
-          phone: data.phone || null,
-          email: data.email || null,
-          address: data.address || null,
-          hourly_rate: data.unit_rate && data.unit_rate !== "" ? parseFloat(data.unit_rate) : null,
-          experience_years: data.experience_years && data.experience_years !== "" ? parseInt(data.experience_years) : null,
-          status: 'active'
-        }]);
+        .insert([vendorData]);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
       toast({
         title: "تم بنجاح",
-        description: "تم إضافة المورد الجديد بنجاح"
+        description: "تم إضافة الفني الجديد بنجاح"
       });
 
       onSuccess?.();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding vendor:', error);
+      
+      let errorMessage = "حدث خطأ في إضافة الفني";
+      
+      // معالجة الأخطاء الشائعة
+      if (error.message?.includes('permission denied') || error.message?.includes('policy')) {
+        errorMessage = "ليس لديك صلاحية لإضافة فنيين. يرجى التواصل مع المدير.";
+      } else if (error.message?.includes('duplicate')) {
+        errorMessage = "هذا البريد الإلكتروني أو رقم الهاتف مستخدم بالفعل";
+      }
+      
       toast({
         title: "خطأ",
-        description: "حدث خطأ في إضافة المورد",
+        description: errorMessage,
         variant: "destructive"
       });
     }
