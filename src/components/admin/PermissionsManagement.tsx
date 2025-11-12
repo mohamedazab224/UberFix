@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
 
-type AppRole = 'admin' | 'manager' | 'staff' | 'technician' | 'vendor' | 'customer' | 'dispatcher' | 'accounting' | 'engineering' | 'warehouse';
+type AppRole = 'admin' | 'manager' | 'staff' | 'technician' | 'vendor' | 'customer' | 'dispatcher' | 'finance';
 
 const ROLE_LABELS: Record<AppRole, string> = {
   admin: 'مدير',
@@ -14,9 +14,7 @@ const ROLE_LABELS: Record<AppRole, string> = {
   vendor: 'مورد',
   customer: 'عميل',
   dispatcher: 'منسق',
-  accounting: 'محاسبة',
-  engineering: 'هندسة',
-  warehouse: 'مخازن',
+  finance: 'مالي',
 };
 
 const PERMISSION_LABELS: Record<string, string> = {

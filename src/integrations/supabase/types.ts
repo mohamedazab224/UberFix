@@ -2085,30 +2085,6 @@ export type Database = {
           },
         ]
       }
-      role_permissions: {
-        Row: {
-          action: string
-          created_at: string | null
-          id: string
-          resource: string
-          role: string
-        }
-        Insert: {
-          action: string
-          created_at?: string | null
-          id?: string
-          resource: string
-          role: string
-        }
-        Update: {
-          action?: string
-          created_at?: string | null
-          id?: string
-          resource?: string
-          role?: string
-        }
-        Relationships: []
-      }
       service_categories: {
         Row: {
           created_at: string
@@ -3753,7 +3729,6 @@ export type Database = {
         | "warehouse"
         | "accounting"
         | "engineering"
-        | "dispatcher"
       maintenance_stage:
         | "DRAFT"
         | "SUBMITTED"
@@ -3970,7 +3945,6 @@ export const Constants = {
         "warehouse",
         "accounting",
         "engineering",
-        "dispatcher",
       ],
       maintenance_stage: [
         "DRAFT",

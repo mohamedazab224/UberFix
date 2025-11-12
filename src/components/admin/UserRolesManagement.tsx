@@ -32,9 +32,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-type AppRole = 'admin' | 'manager' | 'staff' | 'technician' | 'vendor' | 'customer' | 'dispatcher' | 'accounting' | 'engineering' | 'warehouse';
+type AppRole = 'admin' | 'manager' | 'staff' | 'technician' | 'vendor' | 'customer' | 'dispatcher' | 'finance';
 
-const AVAILABLE_ROLES: AppRole[] = ['admin', 'manager', 'staff', 'technician', 'vendor', 'customer', 'dispatcher', 'accounting', 'engineering', 'warehouse'];
+const AVAILABLE_ROLES: AppRole[] = ['admin', 'manager', 'staff', 'technician', 'vendor', 'customer', 'dispatcher', 'finance'];
 
 const ROLE_LABELS: Record<AppRole, string> = {
   admin: 'مدير',
@@ -44,9 +44,7 @@ const ROLE_LABELS: Record<AppRole, string> = {
   vendor: 'مورد',
   customer: 'عميل',
   dispatcher: 'منسق',
-  accounting: 'محاسبة',
-  engineering: 'هندسة',
-  warehouse: 'مخازن',
+  finance: 'مالي',
 };
 
 export function UserRolesManagement() {
@@ -63,25 +61,17 @@ export function UserRolesManagement() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('user_roles')
-        .select('*')
-        .order('assigned_at', { ascending: false });
+        .select(`
+          *,
+          profiles:user_id (
+            id,
+            email,
+            full_name
+          )
+        `)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-      
-      // Fetch profiles separately
-      if (data && data.length > 0) {
-        const userIds = [...new Set(data.map(r => r.user_id))];
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id, email, full_name')
-          .in('id', userIds);
-        
-        return data.map(role => ({
-          ...role,
-          profile: profiles?.find(p => p.id === role.user_id)
-        }));
-      }
-      
       return data;
     },
   });
@@ -264,19 +254,19 @@ export function UserRolesManagement() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {userRoles?.map((userRole: any) => (
+                {userRoles?.map((userRole) => (
                   <TableRow key={`${userRole.user_id}-${userRole.role}`}>
                     <TableCell className="font-medium">
-                      {userRole.profile?.full_name || 'غير محدد'}
+                      {userRole.profiles?.full_name || 'غير محدد'}
                     </TableCell>
-                    <TableCell>{userRole.profile?.email}</TableCell>
+                    <TableCell>{userRole.profiles?.email}</TableCell>
                     <TableCell>
                       <Badge variant="secondary">
                         {ROLE_LABELS[userRole.role as AppRole]}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {new Date(userRole.assigned_at).toLocaleDateString('ar-EG')}
+                      {new Date(userRole.created_at).toLocaleDateString('ar-EG')}
                     </TableCell>
                     <TableCell>
                       <Button

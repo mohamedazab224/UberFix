@@ -25,15 +25,13 @@ const TrackOrders = lazy(() => import("@/modules/uber-map/pages/TrackOrders"));
 const UberInvoices = lazy(() => import("@/modules/uber-map/pages/Invoices"));
 const CompletedServices = lazy(() => import("@/modules/uber-map/pages/CompletedServices"));
 const PWASettings = lazy(() => import("@/pages/PWASettings"));
-const Landing = lazy(() => import("@/pages/Landing"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 /**
  * المسارات العامة (لا تتطلب تسجيل دخول)
  */
 export const publicRoutes = [
-  { path: "/", element: <Landing /> },
-  { path: "/home", element: <Index /> },
+  { path: "/", element: <Index /> },
   { path: "/role-selection", element: <RoleSelection /> },
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
