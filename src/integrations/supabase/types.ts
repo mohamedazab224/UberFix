@@ -869,6 +869,107 @@ export type Database = {
           },
         ]
       }
+      map_locations: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          latitude: number
+          location_type: string | null
+          longitude: number
+          metadata: Json | null
+          name: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          latitude: number
+          location_type?: string | null
+          longitude: number
+          metadata?: Json | null
+          name: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          latitude?: number
+          location_type?: string | null
+          longitude?: number
+          metadata?: Json | null
+          name?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      map_markers: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          latitude: number
+          location_id: string | null
+          longitude: number
+          marker_type: string | null
+          metadata: Json | null
+          title: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          latitude: number
+          location_id?: string | null
+          longitude: number
+          marker_type?: string | null
+          metadata?: Json | null
+          title: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          latitude?: number
+          location_id?: string | null
+          longitude?: number
+          marker_type?: string | null
+          metadata?: Json | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "map_markers_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "map_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_logs: {
         Row: {
           created_at: string
