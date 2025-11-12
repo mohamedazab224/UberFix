@@ -1,4 +1,4 @@
-import { Suspense, useEffect } from "react";
+import { Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,7 +11,7 @@ import { ProtectedRoute } from "@/routes/ProtectedRoute";
 import { protectedRoutes } from "@/routes/routes.config";
 import { publicRoutes } from "@/routes/publicRoutes.config";
 import { Loader2 } from "lucide-react";
-import { registerServiceWorker } from "@/lib/registerServiceWorker";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,10 +35,6 @@ const LoadingFallback = () => (
 const App = () => {
   useProductionOptimizations();
 
-  useEffect(() => {
-    registerServiceWorker();
-  }, []);
-
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
@@ -49,6 +45,7 @@ const App = () => {
           disableTransitionOnChange
         >
           <TooltipProvider>
+            <PWAInstallPrompt />
             <Toaster />
             <Sonner />
             <BrowserRouter>

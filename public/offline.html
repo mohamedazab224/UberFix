@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>غير متصل - UberFix</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: #fff;
+    }
+    
+    .container {
+      text-align: center;
+      max-width: 500px;
+    }
+    
+    .icon {
+      font-size: 120px;
+      margin-bottom: 20px;
+      animation: float 3s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+    }
+    
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      font-weight: 700;
+    }
+    
+    p {
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      opacity: 0.9;
+      line-height: 1.6;
+    }
+    
+    .features {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+      margin-bottom: 2rem;
+    }
+    
+    .features ul {
+      list-style: none;
+      text-align: right;
+    }
+    
+    .features li {
+      padding: 8px 0;
+      font-size: 1rem;
+    }
+    
+    .features li:before {
+      content: "✓ ";
+      margin-left: 8px;
+      font-weight: bold;
+    }
+    
+    button {
+      background: #fff;
+      color: #667eea;
+      border: none;
+      padding: 15px 40px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    .status {
+      margin-top: 20px;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+    
+    .online {
+      color: #4ade80;
+    }
+    
+    .offline {
+      color: #fbbf24;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">📡</div>
+    <h1>غير متصل بالإنترنت</h1>
+    <p>لا يوجد اتصال بالإنترنت حالياً، ولكن يمكنك الاستمرار في استخدام التطبيق</p>
+    
+    <div class="features">
+      <ul>
+        <li>عرض البيانات المحفوظة محلياً</li>
+        <li>حفظ التغييرات للمزامنة لاحقاً</li>
+        <li>تصفح المحتوى المخزن مؤقتاً</li>
+        <li>الوصول للوظائف الأساسية</li>
+      </ul>
+    </div>
+    
+    <button onclick="window.location.reload()">
+      المحاولة مرة أخرى
+    </button>
+    
+    <div class="status">
+      <span id="connection-status" class="offline">⚠️ غير متصل</span>
+    </div>
+  </div>
+  
+  <script>
+    // Monitor online status
+    function updateOnlineStatus() {
+      const status = document.getElementById('connection-status');
+      if (navigator.onLine) {
+        status.className = 'online';
+        status.textContent = '✓ متصل - جاري إعادة التحميل...';
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        status.className = 'offline';
+        status.textContent = '⚠️ غير متصل';
+      }
+    }
+    
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    
+    // Check status on load
+    updateOnlineStatus();
+  </script>
+</body>
+</html>
