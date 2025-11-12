@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useLocation } from 'wouter';
-import { MapView } from '@/components/Map';
+import { MapView } from '../components/Map';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
