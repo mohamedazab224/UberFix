@@ -28,6 +28,8 @@ export default function ServiceMap() {
 
   useEffect(() => {
     let mounted = true;
+    let retryCount = 0;
+    const maxRetries = 3;
     
     const initMap = async () => {
       try {
@@ -37,6 +39,12 @@ export default function ServiceMap() {
         
         if (error) {
           console.error("❌ Failed to get API key:", error);
+          if (mounted && retryCount < maxRetries) {
+            retryCount++;
+            console.log(`🔄 Retrying... (${retryCount}/${maxRetries})`);
+            setTimeout(() => initMap(), 2000);
+            return;
+          }
           if (mounted) setMapError(true);
           return;
         }
@@ -47,18 +55,33 @@ export default function ServiceMap() {
           return;
         }
 
-        console.log("✅ API key received, loading Google Maps...");
-        await loadGoogleMaps(data.apiKey);
-        console.log("✅ Google Maps loaded successfully");
+        console.log("✅ API key received:", data.apiKey.substring(0, 10) + "...");
+        
+        // تحقق من وجود Google Maps
+        if (typeof window.google !== 'undefined' && window.google.maps) {
+          console.log("✅ Google Maps already loaded");
+        } else {
+          console.log("📦 Loading Google Maps script...");
+          await loadGoogleMaps(data.apiKey);
+          console.log("✅ Google Maps script loaded");
+        }
+
+        // انتظر قليلاً للتأكد من تحميل Google Maps
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        if (typeof window.google === 'undefined' || !window.google.maps) {
+          throw new Error("Google Maps failed to load");
+        }
 
         if (mapRef.current && !mapInstanceRef.current && mounted) {
-          console.log("✅ Creating map instance...");
+          console.log("🗺️ Creating map instance...");
           mapInstanceRef.current = new google.maps.Map(mapRef.current, {
             center: { lat: 30.0444, lng: 31.2357 },
             zoom: 13,
             mapTypeControl: false,
-            fullscreenControl: false,
+            fullscreenControl: true,
             streetViewControl: false,
+            zoomControl: true,
             styles: [
               {
                 featureType: "poi",
@@ -66,10 +89,22 @@ export default function ServiceMap() {
               },
             ],
           });
+          
           console.log("✅ Map instance created successfully");
+          
+          // أضف حدث للتأكد من تحميل الخريطة
+          google.maps.event.addListenerOnce(mapInstanceRef.current, 'idle', () => {
+            console.log("✅ Map is fully loaded and idle");
+          });
         }
       } catch (error) {
         console.error("❌ Map loading error:", error);
+        if (mounted && retryCount < maxRetries) {
+          retryCount++;
+          console.log(`🔄 Retrying after error... (${retryCount}/${maxRetries})`);
+          setTimeout(() => initMap(), 2000);
+          return;
+        }
         if (mounted) setMapError(true);
       }
     };
