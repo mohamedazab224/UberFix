@@ -3,7 +3,7 @@ name: Deploy UberFix Landing Page
 on:
   push:
     branches:
-      - main  # عدّلها لو بتستخدم gh-pages أو فرع آخر
+      - main  # عدّلها لو عندك فرع نشر مختلف
 
 permissions:
   contents: read
@@ -16,14 +16,31 @@ concurrency:
 
 jobs:
   deploy:
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: latest
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build app
+        run: pnpm run build
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -31,11 +48,13 @@ jobs:
       - name: Upload static files
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./public   # هنا مجلد الصفحة الهبوطية
+          # الناتج من Vite/React بيكون في dist
+          path: ./dist
+          name: uberfix-pages
 
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-        
-      - name: Install dependencies
-          run: pnpm install --no-frozen-lockfile
+        with:
+          artifact_name: uberfix-pages
+
