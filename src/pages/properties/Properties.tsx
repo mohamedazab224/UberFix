@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, Search, Plus, Edit } from "lucide-react";
+import { Building2, Search, Plus, Edit, MapPin, Maximize } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useProperties } from "@/hooks/useProperties";
 import { useNavigate } from "react-router-dom";
@@ -89,34 +89,46 @@ export default function Properties() {
           {/* Search and Filters */}
           <Card>
             <CardContent className="p-4">
-              <div className="flex gap-3">
+              <div className="flex flex-col md:flex-row gap-3">
                 <div className="relative flex-1">
                   <Search className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="ابحث عن حساب..."
+                    placeholder="ابحث عن عقار بالاسم أو العنوان..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pr-9"
                   />
                 </div>
-                <Button variant="outline" className="gap-2">
-                  <Search className="h-4 w-4" />
-                  ابحث عن عقار...
-                </Button>
-                <Button variant="outline" className="gap-2">
-                  <Search className="h-4 w-4" />
-                  اختر الجميل...
-                </Button>
-                <Button variant="outline" className="gap-2">
-                  <Search className="h-4 w-4" />
-                  ابحث عن مخطط...
-                </Button>
+                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                  <SelectTrigger className="md:w-[180px]">
+                    <SelectValue placeholder="نوع العقار" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">كل الأنواع</SelectItem>
+                    <SelectItem value="residential">سكني</SelectItem>
+                    <SelectItem value="commercial">تجاري</SelectItem>
+                    <SelectItem value="industrial">صناعي</SelectItem>
+                    <SelectItem value="office">مكتبي</SelectItem>
+                    <SelectItem value="retail">تجزئة</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="md:w-[180px]">
+                    <SelectValue placeholder="الحالة" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">كل الحالات</SelectItem>
+                    <SelectItem value="active">نشط</SelectItem>
+                    <SelectItem value="maintenance">تحت الصيانة</SelectItem>
+                    <SelectItem value="inactive">غير نشط</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>
 
           {/* Properties Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {loading ? (
               <div className="col-span-3 flex items-center justify-center py-12">
                 <div className="text-center">
@@ -148,75 +160,94 @@ export default function Properties() {
               filteredProperties.map((property) => (
                 <Card 
                   key={property.id} 
-                  className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                  className="group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1 animate-fade-in"
                   onClick={() => navigate(`/properties/${property.id}`)}
                 >
                   {/* Property Image */}
-                  <div className="relative h-48 bg-gradient-to-br from-muted to-muted/50">
+                  <div className="relative h-56 bg-gradient-to-br from-muted to-muted/50 overflow-hidden">
                     {property.images && property.images.length > 0 ? (
                       <img 
                         src={property.images[0]} 
                         alt={property.name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Building2 className="h-20 w-20 text-muted-foreground/20" />
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10">
+                        <Building2 className="h-24 w-24 text-primary/20" />
                       </div>
                     )}
                     {/* Property Type Badge with Icon */}
-                    <div className="absolute top-3 left-3">
-                      <div className="flex items-center gap-2 bg-background/90 backdrop-blur-sm rounded-full px-3 py-1">
+                    <div className="absolute top-3 right-3">
+                      <div className="flex items-center gap-2 bg-background/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg">
                         <img 
                           src={property.icon_url || getPropertyIcon(property.type)} 
                           alt="" 
-                          className="h-4 w-4"
+                          className="h-5 w-5"
                         />
-                        <span className="text-sm font-medium">
+                        <span className="text-sm font-semibold">
                           {typeConfig[property.type as keyof typeof typeConfig]?.label || property.type}
                         </span>
                       </div>
                     </div>
+                    {/* Status Badge */}
+                    <div className="absolute top-3 left-3">
+                      <Badge className={`${statusConfig[property.status as keyof typeof statusConfig]?.className || 'bg-gray-500'} shadow-md`}>
+                        {statusConfig[property.status as keyof typeof statusConfig]?.label || property.status}
+                      </Badge>
+                    </div>
                   </div>
 
-                  <CardContent className="p-4 space-y-4">
+                  <CardContent className="p-5 space-y-4">
                     {/* Property Name with Icon */}
-                    <div className="flex items-center gap-2">
-                      <img 
-                        src={property.icon_url || getPropertyIcon(property.type)} 
-                        alt="" 
-                        className="h-6 w-6 flex-shrink-0"
-                      />
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
+                        <img 
+                          src={property.icon_url || getPropertyIcon(property.type)} 
+                          alt="" 
+                          className="h-7 w-7"
+                        />
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-lg truncate">{property.name}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {typeConfig[property.type as keyof typeof typeConfig]?.label || property.type}
+                        <h3 className="font-bold text-xl truncate text-foreground group-hover:text-primary transition-colors">
+                          {property.name}
+                        </h3>
+                        <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                          <MapPin className="h-3 w-3" />
+                          <span className="truncate">{property.address}</span>
                         </p>
                       </div>
                     </div>
 
-                    {/* Property Code */}
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span>🔖</span>
-                      <span className="font-medium">{property.code || 'لا يوجد كود'}</span>
+                    {/* Property Details */}
+                    <div className="flex items-center gap-4 text-sm">
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <span className="font-semibold text-foreground">الكود:</span>
+                        <span className="font-mono">{property.code || '-'}</span>
+                      </div>
+                      {property.area && (
+                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                          <Maximize className="h-3.5 w-3.5" />
+                          <span>{property.area} م²</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 pt-2">
                       <Button 
-                        className="flex-1 bg-primary hover:bg-primary/90 min-w-0"
+                        className="flex-1 bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg transition-shadow"
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedProperty({id: property.id, name: property.name});
                         }}
                       >
-                        <span className="truncate">طلب صيانة جديد</span>
+                        <span>طلب صيانة</span>
                       </Button>
                       <Button 
                         variant="outline" 
                         size="sm"
-                        className="flex-shrink-0"
+                        className="flex-shrink-0 hover:bg-primary/10 hover:border-primary"
                         onClick={(e) => {
                           e.stopPropagation();
                           navigate(`/properties/edit/${property.id}`);
