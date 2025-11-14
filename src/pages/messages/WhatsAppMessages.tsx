@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useWhatsApp } from '@/hooks/useWhatsApp';
+import { useTwilioMessages } from '@/hooks/useTwilioMessages';
 import { MessageSquare, Send } from 'lucide-react';
 import { whatsappFormSchema } from '@/lib/validationSchemas';
 import { z } from 'zod';
@@ -15,7 +15,7 @@ import { z } from 'zod';
 type WhatsAppFormData = z.infer<typeof whatsappFormSchema>;
 
 export default function WhatsAppMessages() {
-  const { sendWhatsAppMessage, isSending } = useWhatsApp();
+  const { sendWhatsApp, isSending } = useTwilioMessages();
 
   const form = useForm<WhatsAppFormData>({
     resolver: zodResolver(whatsappFormSchema),
@@ -28,11 +28,12 @@ export default function WhatsAppMessages() {
 
   const onSubmit = async (data: WhatsAppFormData) => {
     try {
-      await sendWhatsAppMessage({
-        to: data.to,
-        message: data.message,
-        media_url: data.media_url || undefined,
-      });
+      await sendWhatsApp(
+        data.to,
+        data.message,
+        undefined, // requestId
+        data.media_url || undefined
+      );
       
       // Clear form
       form.reset();

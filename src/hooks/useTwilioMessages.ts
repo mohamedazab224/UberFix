@@ -9,7 +9,27 @@ interface SendMessageParams {
   requestId?: string;
   templateId?: string;
   variables?: Record<string, string>;
+  media_url?: string;
 }
+
+/**
+ * Hook موحد لإرسال رسائل SMS و WhatsApp عبر Twilio
+ * 
+ * @example
+ * // إرسال SMS
+ * const { sendSMS } = useTwilioMessages();
+ * await sendSMS('+201234567890', 'مرحباً');
+ * 
+ * @example
+ * // إرسال WhatsApp
+ * const { sendWhatsApp } = useTwilioMessages();
+ * await sendWhatsApp('+201234567890', 'مرحباً', 'request-id');
+ * 
+ * @example
+ * // إرسال WhatsApp بقالب
+ * const { sendWhatsAppTemplate } = useTwilioMessages();
+ * await sendWhatsAppTemplate('+201234567890', 'template-id', { name: 'أحمد' });
+ */
 
 export function useTwilioMessages() {
   const [loading, setLoading] = useState(false);
@@ -19,8 +39,14 @@ export function useTwilioMessages() {
     try {
       setLoading(true);
 
+      // Get session for authenticated requests (optional)
+      const { data: { session } } = await supabase.auth.getSession();
+
       const { data, error } = await supabase.functions.invoke('send-twilio-message', {
-        body: params
+        body: params,
+        headers: session ? {
+          Authorization: `Bearer ${session.access_token}`,
+        } : {}
       });
 
       if (error) throw error;
@@ -48,13 +74,23 @@ export function useTwilioMessages() {
     }
   };
 
+  /**
+   * إرسال رسالة SMS نصية
+   */
   const sendSMS = async (to: string, message: string, requestId?: string) => {
     return sendMessage({ to, message, type: 'sms', requestId });
   };
 
-  const sendWhatsApp = async (to: string, message: string, requestId?: string) => {
-    return sendMessage({ to, message, type: 'whatsapp', requestId });
+  /**
+   * إرسال رسالة WhatsApp
+   */
+  const sendWhatsApp = async (to: string, message: string, requestId?: string, media_url?: string) => {
+    return sendMessage({ to, message, type: 'whatsapp', requestId, media_url });
   };
+
+  /**
+   * إرسال رسالة WhatsApp باستخدام قالب معتمد
+   */
 
   const sendWhatsAppTemplate = async (
     to: string,
@@ -72,7 +108,9 @@ export function useTwilioMessages() {
     });
   };
 
-  // إرسال إشعار لطلب صيانة
+  /**
+   * إرسال إشعار صيانة موحد
+   */
   const sendMaintenanceNotification = async (
     requestId: string,
     phone: string,
@@ -100,6 +138,7 @@ export function useTwilioMessages() {
     sendWhatsApp,
     sendWhatsAppTemplate,
     sendMaintenanceNotification,
-    loading
+    loading,
+    isSending: loading, // backward compatibility
   };
 }
