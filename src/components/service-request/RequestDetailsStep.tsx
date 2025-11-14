@@ -16,6 +16,7 @@ import { ArrowRight, Loader2, MapPin } from "lucide-react";
 import { ImageUpload } from "@/components/forms/ImageUpload";
 import { MapLocationPicker } from "@/components/maps/MapLocationPicker";
 import type { Service } from "@/hooks/useServices";
+import { getPropertyIcon } from "@/lib/propertyIcons";
 
 const formSchema = z.object({
   property_id: z.string().optional(),
@@ -96,8 +97,9 @@ export const RequestDetailsStep = ({ selectedServices, onBack }: RequestDetailsS
   const fetchProperties = async () => {
     const { data } = await supabase
       .from('properties')
-      .select('*')
-      .eq('status', 'active');
+      .select('id, name, type, icon_url')
+      .eq('status', 'active')
+      .order('name');
     if (data) setProperties(data);
   };
 
@@ -242,7 +244,14 @@ export const RequestDetailsStep = ({ selectedServices, onBack }: RequestDetailsS
                       <SelectContent>
                         {properties.map(prop => (
                           <SelectItem key={prop.id} value={prop.id}>
-                            {prop.name}
+                            <div className="flex items-center gap-2">
+                              <img 
+                                src={prop.icon_url || getPropertyIcon(prop.type)} 
+                                alt="" 
+                                className="h-4 w-4"
+                              />
+                              <span>{prop.name}</span>
+                            </div>
                           </SelectItem>
                         ))}
                       </SelectContent>

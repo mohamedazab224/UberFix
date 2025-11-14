@@ -23,6 +23,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PropertyQRCode } from "@/components/properties/PropertyQRCode";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { getPropertyIcon } from "@/lib/propertyIcons";
 
 export default function PropertyDetails() {
   const { id } = useParams<{ id: string }>();
@@ -122,13 +123,11 @@ export default function PropertyDetails() {
           </Button>
           <div>
             <div className="flex items-center gap-3">
-              {property.icon_url && (
-                <img 
-                  src={property.icon_url} 
-                  alt="" 
-                  className="h-8 w-8"
-                />
-              )}
+              <img 
+                src={property.icon_url || getPropertyIcon(property.type)} 
+                alt="" 
+                className="h-10 w-10"
+              />
               <h1 className="text-3xl font-bold">{property.name}</h1>
             </div>
             <p className="text-muted-foreground mt-1">

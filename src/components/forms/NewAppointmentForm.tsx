@@ -17,6 +17,7 @@ import { Calendar, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { appointmentFormSchema } from "@/lib/validationSchemas";
+import { getPropertyIcon } from "@/lib/propertyIcons";
 
 interface NewAppointmentFormProps {
   onClose: () => void;
@@ -27,6 +28,8 @@ interface Property {
   id: string;
   name: string;
   address: string;
+  type: string;
+  icon_url?: string;
 }
 
 interface Vendor {
@@ -75,7 +78,7 @@ export const NewAppointmentForm = ({ onClose, onSuccess }: NewAppointmentFormPro
     try {
       const { data, error } = await supabase
         .from('properties')
-        .select('id, name, address')
+        .select('id, name, address, type, icon_url')
         .eq('status', 'active')
         .order('name');
       
@@ -322,9 +325,16 @@ export const NewAppointmentForm = ({ onClose, onSuccess }: NewAppointmentFormPro
                       <SelectContent>
                         {properties.map((property) => (
                           <SelectItem key={property.id} value={property.id}>
-                            <div>
-                              <div className="font-medium">{property.name}</div>
-                              <div className="text-sm text-muted-foreground">{property.address}</div>
+                            <div className="flex items-center gap-2">
+                              <img 
+                                src={property.icon_url || getPropertyIcon(property.type)} 
+                                alt="" 
+                                className="h-4 w-4"
+                              />
+                              <div>
+                                <div className="font-medium">{property.name}</div>
+                                <div className="text-sm text-muted-foreground">{property.address}</div>
+                              </div>
                             </div>
                           </SelectItem>
                         ))}

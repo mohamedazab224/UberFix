@@ -19,6 +19,7 @@ import { useProperties } from "@/hooks/useProperties";
 import { PropertyForm } from "./PropertyForm";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { maintenanceRequestFormSchema } from "@/lib/validationSchemas";
+import { getPropertyIcon } from "@/lib/propertyIcons";
 
 interface NewRequestFormProps {
   onSuccess?: () => void;
@@ -239,7 +240,11 @@ export function NewRequestForm({ onSuccess, onCancel }: NewRequestFormProps) {
                         {properties.map((property) => (
                           <SelectItem key={property.id} value={property.id}>
                             <div className="flex items-center gap-2">
-                              <Building2 className="h-4 w-4" />
+                              <img 
+                                src={property.icon_url || getPropertyIcon(property.type)} 
+                                alt="" 
+                                className="h-4 w-4"
+                              />
                               <span>{property.name} - {property.address}</span>
                             </div>
                           </SelectItem>

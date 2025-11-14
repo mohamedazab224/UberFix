@@ -20,7 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { propertyFormSchema } from "@/lib/validationSchemas";
-import { getPropertyIcon } from "@/lib/propertyIcons";
+import { getPropertyIcon, getPropertyTypes } from "@/lib/propertyIcons";
 import type { z } from "zod";
 
 type PropertyFormData = z.infer<typeof propertyFormSchema>;
@@ -288,24 +288,24 @@ export function PropertyForm({ skipNavigation = false, onSuccess, initialData, p
       {/* نوع العقار */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">نوع العقار *</h3>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          {[
-            { value: "residential", label: "سكني" },
-            { value: "commercial", label: "تجاري" },
-            { value: "industrial", label: "صناعي" },
-            { value: "office", label: "مكتبي" },
-            { value: "retail", label: "تجزئة" },
-          ].map((type) => (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {getPropertyTypes().map((type) => (
             <button
               key={type.value}
               type="button"
               onClick={() => setValue("type", type.value as any)}
-              className={`p-3 rounded-lg border-2 text-center transition-all ${propertyType === type.value
-                ? "border-primary bg-primary/10 text-primary font-semibold"
-                : "border-border hover:border-primary/50"
-                }`}
+              className={`p-4 rounded-lg border-2 text-center transition-all flex flex-col items-center gap-2 ${
+                propertyType === type.value
+                  ? "border-primary bg-primary/10 text-primary font-semibold"
+                  : "border-border hover:border-primary/50"
+              }`}
             >
-              {type.label}
+              <img 
+                src={type.icon} 
+                alt={type.label} 
+                className="w-12 h-12 object-contain"
+              />
+              <span>{type.label}</span>
             </button>
           ))}
         </div>
