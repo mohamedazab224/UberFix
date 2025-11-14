@@ -15,9 +15,9 @@ import { ar } from 'date-fns/locale';
 
 interface WhatsAppMessage {
   id: string;
-  message_sid: string;
-  recipient_phone: string;
-  message_body: string;
+  external_id: string; // message_sid
+  recipient: string; // recipient_phone
+  message_content: string; // message_body
   status: string;
   created_at: string;
   delivered_at?: string;
@@ -34,13 +34,14 @@ export function WhatsAppMessagesTable() {
 
     // Subscribe to real-time updates
     const channel = supabase
-      .channel('whatsapp-messages-changes')
+      .channel('message-logs-whatsapp-changes')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'whatsapp_messages',
+          table: 'message_logs',
+          filter: 'message_type=eq.whatsapp',
         },
         () => {
           fetchMessages();
@@ -56,13 +57,28 @@ export function WhatsAppMessagesTable() {
   const fetchMessages = async () => {
     try {
       const { data, error } = await supabase
-        .from('whatsapp_messages')
+        .from('message_logs')
         .select('*')
+        .eq('message_type', 'whatsapp')
         .order('created_at', { ascending: false })
         .limit(100);
 
       if (error) throw error;
-      setMessages(data || []);
+      
+      // تحويل البيانات للتوافق مع الواجهة
+      const transformedData: WhatsAppMessage[] = (data || []).map((msg) => ({
+        id: msg.id,
+        external_id: msg.external_id || '',
+        recipient: msg.recipient,
+        message_content: msg.message_content,
+        status: msg.status,
+        created_at: msg.created_at,
+        delivered_at: msg.delivered_at || undefined,
+        read_at: (msg.metadata as any)?.read_at || undefined,
+        error_message: msg.error_message || undefined,
+      }));
+      
+      setMessages(transformedData);
     } catch (error) {
       console.error('Error fetching WhatsApp messages:', error);
     } finally {
@@ -124,10 +140,10 @@ export function WhatsAppMessagesTable() {
           {messages.map((message) => (
             <TableRow key={message.id}>
               <TableCell className="font-medium">
-                {message.recipient_phone}
+                {message.recipient}
               </TableCell>
               <TableCell className="max-w-md truncate">
-                {message.message_body}
+                {message.message_content}
               </TableCell>
               <TableCell>
                 {getStatusBadge(message.status)}
