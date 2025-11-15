@@ -1,9 +1,10 @@
 import { MaintenanceReportDashboard } from "@/components/reports/MaintenanceReportDashboard";
+import { PageContainer } from "@/components/layout/PageContainer";
 
 export default function MaintenanceReports() {
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <PageContainer>
       <MaintenanceReportDashboard />
-    </div>
+    </PageContainer>
   );
 }
