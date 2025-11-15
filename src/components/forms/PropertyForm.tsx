@@ -203,6 +203,7 @@ export function PropertyForm({ skipNavigation = false, onSuccess, initialData, p
           longitude: location?.longitude || null,
           icon_url: iconUrl,
           updated_at: new Date().toISOString(),
+          manager_id: user.id,
         };
 
         // Only update images if new ones were uploaded
@@ -251,6 +252,7 @@ export function PropertyForm({ skipNavigation = false, onSuccess, initialData, p
             qr_code_generated_at: new Date().toISOString(),
             status: "active",
             manager_id: user.id,
+            created_by: user.id,
           }]);
 
         if (insertError) {

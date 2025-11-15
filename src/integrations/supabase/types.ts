@@ -1211,6 +1211,7 @@ export type Database = {
           city_id: number | null
           code: string | null
           created_at: string
+          created_by: string | null
           description: string | null
           district_id: number | null
           floors: number | null
@@ -1242,6 +1243,7 @@ export type Database = {
           city_id?: number | null
           code?: string | null
           created_at?: string
+          created_by?: string | null
           description?: string | null
           district_id?: number | null
           floors?: number | null
@@ -1273,6 +1275,7 @@ export type Database = {
           city_id?: number | null
           code?: string | null
           created_at?: string
+          created_by?: string | null
           description?: string | null
           district_id?: number | null
           floors?: number | null
