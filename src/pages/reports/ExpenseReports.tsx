@@ -1,9 +1,10 @@
 import { ExpenseReport } from "@/components/reports/ExpenseReport";
+import { PageContainer } from "@/components/layout/PageContainer";
 
 export default function ExpenseReports() {
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <PageContainer>
       <ExpenseReport />
-    </div>
+    </PageContainer>
   );
 }
