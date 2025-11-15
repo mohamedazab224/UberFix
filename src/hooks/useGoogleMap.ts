@@ -145,33 +145,42 @@ export function useGoogleMap(options: UseGoogleMapOptions = {}): UseGoogleMapRet
   const addMarker = useCallback((marker: MapMarker): google.maps.Marker | null => {
     if (!map) return null;
 
-    // Remove existing marker with same ID
-    if (markersRef.current.has(marker.id)) {
-      removeMarker(marker.id);
-    }
+    try {
+      // Remove existing marker with same ID
+      if (markersRef.current.has(marker.id)) {
+        const existingMarker = markersRef.current.get(marker.id);
+        if (existingMarker && typeof existingMarker.setMap === 'function') {
+          existingMarker.setMap(null);
+        }
+        markersRef.current.delete(marker.id);
+      }
 
-    const markerInstance = new google.maps.Marker({
-      position: { lat: marker.lat, lng: marker.lng },
-      map,
-      title: marker.title,
-      icon: marker.icon,
-    });
-
-    if (marker.onClick) {
-      markerInstance.addListener('click', marker.onClick);
-    }
-
-    if (marker.content) {
-      const infoWindow = new google.maps.InfoWindow({
-        content: marker.content,
+      const markerInstance = new google.maps.Marker({
+        position: { lat: marker.lat, lng: marker.lng },
+        map,
+        title: marker.title,
+        icon: marker.icon,
       });
-      markerInstance.addListener('click', () => {
-        infoWindow.open(map, markerInstance);
-      });
-    }
 
-    markersRef.current.set(marker.id, markerInstance);
-    return markerInstance;
+      if (marker.onClick) {
+        markerInstance.addListener('click', marker.onClick);
+      }
+
+      if (marker.content) {
+        const infoWindow = new google.maps.InfoWindow({
+          content: marker.content,
+        });
+        markerInstance.addListener('click', () => {
+          infoWindow.open(map, markerInstance);
+        });
+      }
+
+      markersRef.current.set(marker.id, markerInstance);
+      return markerInstance;
+    } catch (error) {
+      console.error('Error adding marker:', error);
+      return null;
+    }
   }, [map]);
 
   // Remove marker function
@@ -221,16 +230,53 @@ export function useGoogleMap(options: UseGoogleMapOptions = {}): UseGoogleMapRet
 
   // Update markers when markers prop changes
   useEffect(() => {
-    if (!map || markers.length === 0) return;
+    if (!map) return;
 
-    // Clear existing markers
-    clearMarkers();
-
-    // Add new markers
-    markers.forEach((marker) => {
-      addMarker(marker);
+    // Clear existing markers first
+    const currentMarkers = Array.from(markersRef.current.values());
+    markersRef.current.clear();
+    
+    currentMarkers.forEach((marker) => {
+      try {
+        if (marker && typeof marker.setMap === 'function') {
+          marker.setMap(null);
+        }
+      } catch (e) {
+        // Silently ignore cleanup errors
+      }
     });
-  }, [map, markers, addMarker, clearMarkers]);
+
+    // Add new markers only if we have any
+    if (markers.length > 0) {
+      markers.forEach((markerData) => {
+        try {
+          const markerInstance = new google.maps.Marker({
+            position: { lat: markerData.lat, lng: markerData.lng },
+            map,
+            title: markerData.title,
+            icon: markerData.icon,
+          });
+
+          if (markerData.onClick) {
+            markerInstance.addListener('click', markerData.onClick);
+          }
+
+          if (markerData.content) {
+            const infoWindow = new google.maps.InfoWindow({
+              content: markerData.content,
+            });
+            markerInstance.addListener('click', () => {
+              infoWindow.open(map, markerInstance);
+            });
+          }
+
+          markersRef.current.set(markerData.id, markerInstance);
+        } catch (e) {
+          console.error('Error adding marker:', e);
+        }
+      });
+    }
+  }, [map, markers]);
 
   return {
     mapRef,
