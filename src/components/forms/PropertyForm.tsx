@@ -221,7 +221,10 @@ export function PropertyForm({ skipNavigation = false, onSuccess, initialData, p
 
         if (updateError) {
           console.error("Update error:", updateError);
-          throw new Error(updateError.message || "حدث خطأ أثناء تحديث العقار");
+          const errorMsg = updateError.message.includes('duplicate') || updateError.message.includes('unique')
+            ? "عقار بنفس الاسم أو الكود موجود بالفعل. يرجى تغيير الاسم أو الكود"
+            : updateError.message || "حدث خطأ أثناء تحديث العقار";
+          throw new Error(errorMsg);
         }
 
         toast({
@@ -257,7 +260,10 @@ export function PropertyForm({ skipNavigation = false, onSuccess, initialData, p
 
         if (insertError) {
           console.error("Insert error:", insertError);
-          throw new Error(insertError.message || "حدث خطأ أثناء إضافة العقار");
+          const errorMsg = insertError.message.includes('duplicate') || insertError.message.includes('unique')
+            ? "عقار بنفس الاسم أو الكود موجود بالفعل. يرجى تغيير الاسم أو الكود"
+            : insertError.message || "حدث خطأ أثناء إضافة العقار";
+          throw new Error(errorMsg);
         }
 
         toast({
