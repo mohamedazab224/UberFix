@@ -21,8 +21,8 @@ export function InteractiveMap({
   className = "",
 }: InteractiveMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
-  const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [marker, setMarker] = useState<google.maps.Marker | null>(null);
+  const mapInstanceRef = useRef<google.maps.Map | null>(null);
+  const markerInstanceRef = useRef<google.maps.Marker | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentLat, setCurrentLat] = useState(latitude);
   const [currentLng, setCurrentLng] = useState(longitude);
@@ -34,9 +34,6 @@ export function InteractiveMap({
 
   useEffect(() => {
     let isMounted = true;
-    let mapInstance: google.maps.Map | null = null;
-    let markerInstance: google.maps.Marker | null = null;
-    let isCleanedUp = false;
 
     const loadGoogleMaps = async (): Promise<void> => {
       if (window.google?.maps) {
@@ -69,9 +66,9 @@ export function InteractiveMap({
       try {
         await loadGoogleMaps();
         
-        if (!isMounted || !mapRef.current || isCleanedUp) return;
+        if (!isMounted || !mapRef.current) return;
 
-        mapInstance = new google.maps.Map(mapRef.current, {
+        const mapInstance = new google.maps.Map(mapRef.current, {
           center: { lat: currentLat, lng: currentLng },
           zoom: 15,
           mapTypeControl: true,
@@ -80,17 +77,20 @@ export function InteractiveMap({
           zoomControl: true,
         });
 
-        markerInstance = new google.maps.Marker({
+        const markerInstance = new google.maps.Marker({
           position: { lat: currentLat, lng: currentLng },
           map: mapInstance,
           draggable: true,
           animation: google.maps.Animation.DROP,
         });
 
+        mapInstanceRef.current = mapInstance;
+        markerInstanceRef.current = markerInstance;
+
         markerInstance.addListener("dragend", async () => {
-          if (isCleanedUp) return;
-          const position = markerInstance?.getPosition();
-          if (position && isMounted) {
+          if (!isMounted) return;
+          const position = markerInstance.getPosition();
+          if (position) {
             const lat = position.lat();
             const lng = position.lng();
             setCurrentLat(lat);
@@ -110,37 +110,33 @@ export function InteractiveMap({
         });
 
         mapInstance.addListener("click", async (e: google.maps.MapMouseEvent) => {
-          if (isCleanedUp) return;
-          if (e.latLng && isMounted && markerInstance && mapInstance) {
-            const lat = e.latLng.lat();
-            const lng = e.latLng.lng();
-            
-            markerInstance.setPosition(e.latLng);
-            mapInstance.panTo(e.latLng);
-            setCurrentLat(lat);
-            setCurrentLng(lng);
-            
-            const geocoder = new google.maps.Geocoder();
-            try {
-              const response = await geocoder.geocode({ location: { lat, lng } });
-              const address = response.results[0]?.formatted_address;
-              onLocationChange?.(lat, lng, address);
-              toast.success("تم تحديث الموقع");
-            } catch (error) {
-              onLocationChange?.(lat, lng);
-              toast.success("تم تحديث الموقع");
-            }
+          if (!isMounted || !e.latLng) return;
+          const lat = e.latLng.lat();
+          const lng = e.latLng.lng();
+          
+          markerInstance.setPosition(e.latLng);
+          mapInstance.panTo(e.latLng);
+          setCurrentLat(lat);
+          setCurrentLng(lng);
+          
+          const geocoder = new google.maps.Geocoder();
+          try {
+            const response = await geocoder.geocode({ location: { lat, lng } });
+            const address = response.results[0]?.formatted_address;
+            onLocationChange?.(lat, lng, address);
+            toast.success("تم تحديث الموقع");
+          } catch (error) {
+            onLocationChange?.(lat, lng);
+            toast.success("تم تحديث الموقع");
           }
         });
 
-        if (isMounted && !isCleanedUp) {
-          setMap(mapInstance);
-          setMarker(markerInstance);
+        if (isMounted) {
           setIsLoading(false);
         }
       } catch (error) {
         console.error("Error loading map:", error);
-        if (isMounted && !isCleanedUp) {
+        if (isMounted) {
           toast.error("فشل تحميل الخريطة - تأكد من وجود مفتاح Google Maps");
           setIsLoading(false);
         }
@@ -151,45 +147,28 @@ export function InteractiveMap({
 
     return () => {
       isMounted = false;
-      isCleanedUp = true;
       
-      setTimeout(() => {
-        try {
-          if (markerInstance && window.google?.maps) {
-            google.maps.event.clearInstanceListeners(markerInstance);
-            markerInstance.setMap(null);
-          }
-        } catch (error) {
-          // Ignore cleanup errors
-        }
-        
-        try {
-          if (mapInstance && window.google?.maps) {
-            google.maps.event.clearInstanceListeners(mapInstance);
-          }
-        } catch (error) {
-          // Ignore cleanup errors
-        }
-        
-        try {
-          if (mapRef.current) {
-            mapRef.current.innerHTML = '';
-          }
-        } catch (error) {
-          // Ignore cleanup errors
-        }
-      }, 0);
+      // Cleanup without touching DOM directly
+      if (markerInstanceRef.current) {
+        markerInstanceRef.current.setMap(null);
+        markerInstanceRef.current = null;
+      }
+      
+      if (mapInstanceRef.current && window.google?.maps) {
+        google.maps.event.clearInstanceListeners(mapInstanceRef.current);
+        mapInstanceRef.current = null;
+      }
     };
   }, []);
 
   // Update marker position when latitude/longitude props change
   useEffect(() => {
-    if (map && marker) {
+    if (markerInstanceRef.current && mapInstanceRef.current) {
       const newPos = { lat: currentLat, lng: currentLng };
-      marker.setPosition(newPos);
-      map.panTo(newPos);
+      markerInstanceRef.current.setPosition(newPos);
+      mapInstanceRef.current.panTo(newPos);
     }
-  }, [currentLat, currentLng, map, marker]);
+  }, [currentLat, currentLng]);
 
   const handleCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -206,10 +185,10 @@ export function InteractiveMap({
         setCurrentLat(newLat);
         setCurrentLng(newLng);
         
-        if (map && marker) {
-          marker.setPosition(newPos);
-          map.panTo(newPos);
-          map.setZoom(16);
+        if (mapInstanceRef.current && markerInstanceRef.current) {
+          markerInstanceRef.current.setPosition(newPos);
+          mapInstanceRef.current.panTo(newPos);
+          mapInstanceRef.current.setZoom(16);
         }
 
         // Get address from coordinates
