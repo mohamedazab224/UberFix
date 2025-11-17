@@ -1,9 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { MapPin, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 interface InteractiveMapProps {
@@ -21,26 +19,130 @@ export function InteractiveMap({
   height = "400px",
   className = "",
 }: InteractiveMapProps) {
-  const [lat, setLat] = useState(latitude.toString());
-  const [lng, setLng] = useState(longitude.toString());
+  const mapRef = useRef<HTMLDivElement>(null);
+  const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [marker, setMarker] = useState<google.maps.Marker | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentLat, setCurrentLat] = useState(latitude);
+  const [currentLng, setCurrentLng] = useState(longitude);
 
   useEffect(() => {
-    setLat(latitude.toString());
-    setLng(longitude.toString());
+    setCurrentLat(latitude);
+    setCurrentLng(longitude);
   }, [latitude, longitude]);
 
-  const handleUpdate = () => {
-    const parsedLat = parseFloat(lat);
-    const parsedLng = parseFloat(lng);
+  useEffect(() => {
+    const initMap = async () => {
+      try {
+        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+        
+        if (!apiKey) {
+          toast.error("مفتاح Google Maps غير موجود");
+          setIsLoading(false);
+          return;
+        }
 
-    if (isNaN(parsedLat) || isNaN(parsedLng)) {
-      toast.error("الرجاء إدخال أرقام صحيحة");
-      return;
+        // Load Google Maps script
+        if (!window.google) {
+          const script = document.createElement('script');
+          script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+          script.async = true;
+          script.defer = true;
+          
+          await new Promise((resolve, reject) => {
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+          });
+        }
+        
+        if (!mapRef.current) return;
+
+        const mapInstance = new google.maps.Map(mapRef.current, {
+          center: { lat: currentLat, lng: currentLng },
+          zoom: 15,
+          mapTypeControl: true,
+          streetViewControl: true,
+          fullscreenControl: true,
+          zoomControl: true,
+        });
+
+        const markerInstance = new google.maps.Marker({
+          position: { lat: currentLat, lng: currentLng },
+          map: mapInstance,
+          draggable: true,
+          animation: google.maps.Animation.DROP,
+        });
+
+        // Handle marker drag
+        markerInstance.addListener("dragend", async () => {
+          const position = markerInstance.getPosition();
+          if (position) {
+            const lat = position.lat();
+            const lng = position.lng();
+            setCurrentLat(lat);
+            setCurrentLng(lng);
+            
+            // Get address from coordinates
+            const geocoder = new google.maps.Geocoder();
+            try {
+              const response = await geocoder.geocode({ location: { lat, lng } });
+              const address = response.results[0]?.formatted_address;
+              onLocationChange?.(lat, lng, address);
+              toast.success("تم تحديث الموقع");
+            } catch (error) {
+              onLocationChange?.(lat, lng);
+              toast.success("تم تحديث الموقع");
+            }
+          }
+        });
+
+        // Handle map click
+        mapInstance.addListener("click", async (e: google.maps.MapMouseEvent) => {
+          if (e.latLng) {
+            const lat = e.latLng.lat();
+            const lng = e.latLng.lng();
+            
+            markerInstance.setPosition(e.latLng);
+            mapInstance.panTo(e.latLng);
+            setCurrentLat(lat);
+            setCurrentLng(lng);
+            
+            // Get address from coordinates
+            const geocoder = new google.maps.Geocoder();
+            try {
+              const response = await geocoder.geocode({ location: { lat, lng } });
+              const address = response.results[0]?.formatted_address;
+              onLocationChange?.(lat, lng, address);
+              toast.success("تم تحديث الموقع");
+            } catch (error) {
+              onLocationChange?.(lat, lng);
+              toast.success("تم تحديث الموقع");
+            }
+          }
+        });
+
+        setMap(mapInstance);
+        setMarker(markerInstance);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error loading map:", error);
+        toast.error("فشل تحميل الخريطة");
+        setIsLoading(false);
+      }
+    };
+
+    initMap();
+  }, []);
+
+  // Update marker position when latitude/longitude props change
+  useEffect(() => {
+    if (map && marker) {
+      const newPos = { lat: currentLat, lng: currentLng };
+      marker.setPosition(newPos);
+      map.panTo(newPos);
     }
-
-    onLocationChange?.(parsedLat, parsedLng);
-    toast.success("تم تحديث الموقع");
-  };
+  }, [currentLat, currentLng, map, marker]);
 
   const handleCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -49,12 +151,34 @@ export function InteractiveMap({
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const newLat = position.coords.latitude;
         const newLng = position.coords.longitude;
-        setLat(newLat.toString());
-        setLng(newLng.toString());
-        onLocationChange?.(newLat, newLng);
+        const newPos = { lat: newLat, lng: newLng };
+        
+        setCurrentLat(newLat);
+        setCurrentLng(newLng);
+        
+        if (map && marker) {
+          marker.setPosition(newPos);
+          map.panTo(newPos);
+          map.setZoom(16);
+        }
+
+        // Get address from coordinates
+        if (window.google) {
+          const geocoder = new google.maps.Geocoder();
+          try {
+            const response = await geocoder.geocode({ location: newPos });
+            const address = response.results[0]?.formatted_address;
+            onLocationChange?.(newLat, newLng, address);
+          } catch (error) {
+            onLocationChange?.(newLat, newLng);
+          }
+        } else {
+          onLocationChange?.(newLat, newLng);
+        }
+        
         toast.success("تم تحديد موقعك الحالي");
       },
       (error) => {
@@ -83,51 +207,24 @@ export function InteractiveMap({
           </Button>
         </div>
 
-        {/* خريطة تفاعلية مرئية */}
         <div 
-          style={{ height, minHeight: "300px", width: "100%" }}
-          className="rounded-lg border-2 border-primary/20 overflow-hidden relative bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5"
+          ref={mapRef}
+          style={{ height, width: "100%" }}
+          className="rounded-lg border-2 border-primary/20 overflow-hidden relative"
         >
-          {/* شبكة الخريطة */}
-          <div className="absolute inset-0 opacity-20">
-            <div className="grid grid-cols-10 grid-rows-10 h-full w-full">
-              {Array.from({ length: 100 }).map((_, i) => (
-                <div key={i} className="border border-primary/20"></div>
-              ))}
-            </div>
-          </div>
-
-          {/* المحتوى المركزي */}
-          <div className="relative h-full min-h-[300px] flex flex-col items-center justify-center p-6">
-            <div className="relative mb-6">
-              <div className="absolute inset-0 bg-primary rounded-full blur-3xl opacity-30 animate-pulse"></div>
-              <MapPin className="h-20 w-20 text-primary relative z-10 drop-shadow-2xl" />
-            </div>
-            
-            <div className="bg-card border-2 border-primary/20 rounded-xl px-8 py-4 shadow-xl">
-              <p className="text-base font-bold text-primary mb-2 text-center">📍 الموقع الحالي</p>
-              <div className="flex flex-col gap-2 text-sm">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <span className="font-bold text-foreground">خط العرض:</span>
-                  <span className="font-mono">{parseFloat(lat).toFixed(6)}°</span>
-                </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <span className="font-bold text-foreground">خط الطول:</span>
-                  <span className="font-mono">{parseFloat(lng).toFixed(6)}°</span>
-                </div>
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm z-10">
+              <div className="text-center space-y-2">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="text-sm text-muted-foreground">جاري تحميل الخريطة...</p>
               </div>
             </div>
-
-            <p className="text-sm text-muted-foreground mt-6 text-center max-w-md bg-background/50 backdrop-blur-sm rounded-lg px-4 py-2">
-              📱 اضغط على زر "موقعي الحالي" لتحديد موقعك تلقائياً
-            </p>
-          </div>
-
-          {/* علامات الاتجاهات */}
-          <div className="absolute top-3 left-3 bg-card border border-primary/20 rounded-lg px-3 py-2 text-sm font-bold text-primary shadow-md">
-            ⬆️ شمال
-          </div>
+          )}
         </div>
+
+        <p className="text-xs text-muted-foreground text-center">
+          💡 انقر على الخريطة أو اسحب العلامة لتحديد الموقع
+        </p>
       </div>
     </Card>
   );
